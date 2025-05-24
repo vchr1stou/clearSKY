@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Initial Grades Posting</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <header>
+    <div class="top-bar">logo, status, navigation</div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Instructor name</h2>
+
+      <fieldset>
+        <legend>INITIAL GRADES POSTING</legend>
+        <label for="gradesFile">xlsx file with initial grades</label><br />
+        <input type="file" id="gradesFile" accept=".xlsx" />
+        <button id="submitBtn">submit initial grades</button>
+      </fieldset>
+
+      <fieldset class="spaced-fieldset">
+        <legend>XLSX file parsing</legend>
+
+        <label for="courseName">Course:</label>
+        <input type="text" id="courseName" readonly /><br />
+
+        <label for="examPeriod">Period:</label>
+        <input type="text" id="examPeriod" readonly /><br />
+
+        <label for="gradeCount">n. of grades:</label>
+        <input type="text" id="gradeCount" readonly /><br />
+
+        <input type="hidden" id="tempFilePath" />
+
+        <button class="confirm" id="confirmBtn" disabled>CONFIRM</button>
+        <button class="cancel" id="cancelBtn" disabled>CANCEL</button>
+      </fieldset>
+
+      <fieldset class="spaced-fieldset">
+        <legend>Message area</legend>
+        <div id="messageArea"></div>
+      </fieldset>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('gradesFile');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please select a file first.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('grading_type', 'initial'); // Στέλνουμε εδώ το grading_type
+
+      const res = await fetch('/upload-preview', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        document.getElementById('courseName').value = data.course_name;
+        document.getElementById('examPeriod').value = data.exam_period;
+        document.getElementById('gradeCount').value = data.grade_count;
+        document.getElementById('tempFilePath').value = data.temp_file;
+        document.getElementById('confirmBtn').disabled = false;
+        document.getElementById('cancelBtn').disabled = false;
+        document.getElementById('messageArea').textContent = '';
+      } else {
+        alert(data.error || 'Upload failed');
+      }
+    });
+
+    document.getElementById('confirmBtn').addEventListener('click', async () => {
+      const tempFile = document.getElementById('tempFilePath').value;
+      const gradingType = 'initial';
+
+      const res = await fetch('/upload-confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ temp_file: tempFile, grading_type: 'initial' }) // Κι εδώ το grading_type
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        resetPreviewForm();
+        document.getElementById('messageArea').textContent = data.message;
+    }
+else {
+        alert(data.error || 'Confirm failed');
+      }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      resetPreviewForm();
+    });
+
+    function resetPreviewForm() {
+      document.getElementById('courseName').value = '';
+      document.getElementById('examPeriod').value = '';
+      document.getElementById('gradeCount').value = '';
+      document.getElementById('tempFilePath').value = '';
+      document.getElementById('confirmBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = true;
+      document.getElementById('gradesFile').value = '';
+      document.getElementById('messageArea').textContent = '';
+    }
+  </script>
+
+</body>
+</html>
