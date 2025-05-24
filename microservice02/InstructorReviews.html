@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Instructor Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="navbar">
+    logo, status, navigation
+  </div>
+
+  <main>
+    <h2>Instructor name</h2>
+
+    <div class="student-info">
+      <table>
+        <thead>
+          <tr>
+            <th>course name</th>
+            <th>exam period</th>
+            <th>student</th>
+            <th>action</th>
+          </tr>
+        </thead>
+        <tbody id="requests-body">
+          <!-- Dynamic rows go here -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const path = window.location.pathname; 
+
+// Κάνουμε split το path με '/' για να πάρουμε τα κομμάτια
+const parts = path.split('/'); // πχ: ['', 'GradesReviewRequest', 'ReviewsPending', '9001']
+
+// Το instructorId είναι το τελευταίο κομμάτι
+const instructorId = parts[parts.length - 1];
+
+    fetch(`/GradesReviewRequest/ReviewsPending/data/${instructorId}`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('requests-body');
+        tbody.innerHTML = ''; // Καθαρίζει παλιό περιεχόμενο
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4">No pending requests.</td></tr>';
+          return;
+        }
+
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${row.course_name}</td>
+            <td>${row.exam_period}</td>
+            <td>${row.student}</td>
+            <td><button onclick="handleReply(${row.request_id})">Reply</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+
+    function handleReply(requestId) {
+      // Εδώ μπορείς να πας σε σελίδα απάντησης ή να ανοίξεις modal
+      window.location.href = `/GradesReviewRequest/ReviewsRespond/${requestId}`;
+    }
+  </script>
+</body>
+</html>

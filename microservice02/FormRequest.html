@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Grades with Feedback</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <header>
+    <div class="navbar">logo, status, navigation</div>
+  </header>
+
+  <main>
+    <section class="student-info">
+      <h2 id="student-info-heading">Student: ...</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Course name</th>
+            <th>Exam period</th>
+            <th>Grading status</th>
+          </tr>
+        </thead>
+        <tbody id="grades-table-body">
+          <!-- Γεμίζει δυναμικά -->
+        </tbody>
+      </table>
+    </section>
+
+    <section class="reply-form" style="margin-top: 2rem;">
+      <h3>Submit feedback</h3>
+      <textarea id="feedback-textarea" placeholder="Write your comment here..."></textarea>
+      <button class="reply-button" id="submit-feedback">Υποβολή</button>
+    </section>
+  </main>
+
+  <script>
+    const parts = window.location.pathname.split('/');
+    const studentId = parts[parts.length - 2];
+    const gradeId = parts[parts.length - 1];
+
+    document.getElementById('student-info-heading').textContent = `Student ID: ${studentId} | Grade ID: ${gradeId}`;
+
+    fetch(`/GradesReviewRequest/FormRequest/${studentId}/${gradeId}/data`)
+      .then(res => res.json())
+      .then(grade => {
+        const tableBody = document.getElementById('grades-table-body');
+
+        if (!grade) {
+          tableBody.innerHTML = `<tr><td colspan="3">No grade data found</td></tr>`;
+          return;
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${grade.course_name}</td>
+          <td>${grade.exam_period}</td>
+          <td>${grade.grading_status}</td>
+        `;
+
+        tableBody.appendChild(row);
+      });
+
+    document.getElementById('submit-feedback').addEventListener('click', () => {
+  const request_message = document.getElementById('feedback-textarea').value;
+
+  fetch(`/GradesReviewRequest/FormRequest/${studentId}/${gradeId}/feedback`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ request_message })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Something went wrong');
+    }
+    return response.json();
+  })
+  .then(data => {
+    alert('✅ Feedback submitted successfully!');
+    document.getElementById('feedback-textarea').value = ''; // Καθαρισμός του πεδίου
+  })
+  .catch(error => {
+    console.error('Error submitting feedback:', error);
+    alert('❌ Failed to submit feedback.');
+  });
+});
+
+  </script>
+</body>
+</html>

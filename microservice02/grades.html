@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Grades</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <header>
+    <div class="navbar">logo, status, navigation</div>
+  </header>
+
+  <main>
+    <section class="student-info">
+      <h2 id="student-info-heading">Student: ...</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Course name</th>
+            <th>Exam period</th>
+            <th>Grading status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="grades-table-body">
+          <!-- Δυναμικό περιεχόμενο -->
+        </tbody>
+      </table>
+    </section>
+
+    <section class="grades-section" style="margin-top: 2rem;">
+      <div class="grades-box">
+        <h3>my grades<br><span id="selected-course-period">-</span></h3>
+        <label>Total <input type="text" readonly /></label>
+        <label>Q1 <input type="text" readonly /></label>
+        <label>Q2 <input type="text" readonly /></label>
+        <label>Q3 <input type="text" readonly /></label>
+        <label>Q4 <input type="text" readonly /></label>
+        <label>Q5 <input type="text" readonly /></label>
+        <label>Q6 <input type="text" readonly /></label>
+        <label>Q7 <input type="text" readonly /></label>
+        <label>Q8 <input type="text" readonly /></label>
+        <label>Q9 <input type="text" readonly /></label>
+        <label>Q10 <input type="text" readonly /></label>
+      </div>
+
+      <div class="chart-box">
+        <h3><span id="selected-course-period-1">-</span> - total</h3>
+        <div class="chart-placeholder">[Chart Placeholder]</div>
+      </div>
+
+      <div class="chart-box">
+        <h3><span id="selected-course-period-2">-</span> - Q1</h3>
+        <div class="chart-placeholder">[Chart Placeholder]</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Εξαγωγή studentId από το path: /GradesReviewRequest/Main/:studentId
+    const parts = window.location.pathname.split('/');
+    const studentId = parts[parts.length - 1];
+    console.log('[Client] Extracted studentId:', studentId);
+
+    fetch(`/GradesReviewRequest/Main/${studentId}/data`)
+      .then(res => res.json())
+      .then(data => {
+        const tableBody = document.getElementById('grades-table-body');
+        const studentHeading = document.getElementById('student-info-heading');
+        studentHeading.textContent = `Student ID: ${studentId}`;
+        console.log('Grades data:', data);
+
+        if (data.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4">No grades found</td></tr>`;
+          return;
+        }
+
+        data.forEach((grade, index) => {
+          const row = document.createElement('tr');
+          if (index === 0) row.classList.add('highlight');
+
+          row.innerHTML = `
+            <td>${grade.course_name}</td>
+            <td>${grade.exam_period}</td>
+            <td>${grade.grading_status}</td>
+            <td>
+              <button>view my grades</button>
+              <button class="ask-review-btn" data-grade-id="${grade.grade_id}">ask for review</button>
+              <button>view review status</button>
+            </td>
+          `;
+
+          tableBody.appendChild(row);
+        });
+
+        // Navigation to FormRequest with studentId and gradeId
+        document.querySelectorAll('.ask-review-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const gradeId = btn.dataset.gradeId;
+            console.log('Navigating to review form with gradeId:', gradeId);
+            window.location.href = `/GradesReviewRequest/FormRequest/${studentId}/${gradeId}`;
+          });
+        });
+
+        // Handle "view review status" buttons
+        document.querySelectorAll('button').forEach(button => {
+          if (button.textContent === 'view review status') {
+            button.addEventListener('click', () => {
+              const tr = button.closest('tr');
+              const courseName = tr.children[0].textContent;
+              const examPeriod = tr.children[1].textContent;
+
+              fetch(`/GradesReviewRequest/ReviewStatus/${studentId}/${encodeURIComponent(courseName)}/${encodeURIComponent(examPeriod)}`)
+                .then(res => res.json())
+                .then(data => {
+                    let message = `Review status for ${courseName} (${examPeriod}): ${data.review_status}`;
+                    if (data.review_status === 'finished' && data.respond_message) {
+                        message += `\n\nInstructor's response:\n"${data.respond_message}"`;
+                    }
+                    alert(message);
+})
+                .catch(err => {
+                  alert('Error fetching review status: ' + err.message);
+                });
+            });
+          }
+        });
+      });
+
+    function updateChartsTitle(course, period) {
+      const title = `${course} - ${period}`;
+      document.getElementById('selected-course-period').textContent = title;
+      document.getElementById('selected-course-period-1').textContent = title;
+      document.getElementById('selected-course-period-2').textContent = title;
+    }
+  </script>
+</body>
+</html>
