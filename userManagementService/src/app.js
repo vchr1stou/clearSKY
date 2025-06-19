@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userManagementRoute');
 const { initDB } = require('./models/index');
 
 const app = express();
@@ -28,7 +28,7 @@ app.use((err, req, res, next) => {
 
 
 // Define routes
-app.use('/api/auth', authRoutes);
+app.use('/api/userManagement', userRoutes);
 
 // Error handling
 app.use((err, req, res) => {

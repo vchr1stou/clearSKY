@@ -37,7 +37,7 @@ async function loginUser(email, password) {
     const user = await User.findOne({ where: { email: email } });
     // Check password
     if (!user) {
-        const err = new Error('Invalid email or password');
+        const err = new Error('Incorrect email or password');
         err.status = 401; // Unauthorized
         throw err;
     }
@@ -45,7 +45,7 @@ async function loginUser(email, password) {
 
     // error handling
     if (!isPasswordValid) {
-        const err = new Error('Invalid email or password');
+        const err = new Error('Incorrect email or password');
         err.status = 401; // Unauthorized
         throw err;
     }
