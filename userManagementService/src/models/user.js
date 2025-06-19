@@ -14,8 +14,7 @@ User.init(
         },
         studentID: {
             type: DataTypes.STRING,
-            allowNull: true,
-            unique: true,
+            allowNull: true
         },
         FullName: {
             type: DataTypes.STRING,

@@ -10,7 +10,7 @@ async function authMiddleware(req, res, next) {
     try {
         const payload = verifyToken(token);
         const user = await User.findOne({ where: { email: payload.email } });
-        if (!user || user.role !== 'INSTITUTION_REPRESENTATIVE') {
+        if (!user || user.role === 'INSTRUCTOR' || user.role === 'STUDENT') {
             return res.status(403).json({ message: 'Access forbidden' });
         }
         req.user = user;

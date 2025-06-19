@@ -41,7 +41,7 @@ async function startServer() {
     try {
         await initDB();
         const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => console.log(`Auth service running on port ${PORT}`));
+        app.listen(PORT, () => console.log(`User management service running on port ${PORT}`));
     } catch (err) {
         console.error('Database initialization failed:', err);
         process.exit(1);

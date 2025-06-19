@@ -1,4 +1,5 @@
 const User = require('../models/user.js');
+const bcrypt = require('bcrypt');
 
 // Create a new user
 async function createUser(userData) {
@@ -19,20 +20,20 @@ async function createUser(userData) {
     }
     // Create new user
     const newUser = await User.create({
-        studentID,
-        FullName,
-        email,
-        telephone,
-        password,
-        role,
-        institutionID
+        studentID: studentID,
+        FullName: FullName,
+        email: email,
+        telephone: telephone,
+        password: password,
+        role: role,
+        institutionID: institutionID,
     });
     return newUser;
 }
 
 // Change user password
 async function changePassword(userData) {
-    const { email, password, studentID} = userData;
+    const { email, password, studentID, institutionID} = userData;
     // Find user by email
     const user = await User.findOne({ where: { email: email } });
 
@@ -46,13 +47,15 @@ async function changePassword(userData) {
         err.status = 403; // Forbidden
         throw err;
     }
-    else if (user.institutionID !== userData.institutionID) {
+    else if (user.institutionID !== institutionID) {
         const err = new Error('User does not belong to this institution');
         err.status = 401; // Unauthorized
         throw err;
     }
     // Update user password
-    user.password = password;
+    user.password = await bcrypt.hash(password, 10);
     await user.save();
     return user;
 }
+
+module.exports = {createUser, changePassword};
