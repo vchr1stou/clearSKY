@@ -112,25 +112,6 @@ export default function Statistics() {
         />
       </div>
 
-      {/* Large blurred rectangle centered below clearsky.svg */}
-      <div
-        style={{
-          position: "absolute",
-          top: 30 + 60 + 40 + 131 + 66, // nav top + nav height + spacing + clearsky height + 66px
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 1340,
-          height: 450,
-          borderRadius: 46,
-          background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-        }}
-      />
-
       {/* Content will be added here */}
     </div>
   );
