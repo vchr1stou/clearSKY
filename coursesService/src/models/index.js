@@ -13,9 +13,7 @@ async function initDB() {
     }
 }
 
-Grade.belongsTo(require('./course'), {
-    foreignKey: 'course_id',
-    targetKey: 'course_id',
-});
+Course.hasMany(Grade, { as: 'Grades' });
+Grade.belongsTo(Course, { as: 'Course' });
 
 module.exports = {Grade, Course, initDB};

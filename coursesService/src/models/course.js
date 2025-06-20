@@ -4,10 +4,9 @@ const sequelize = require('../config/db');
 class Course extends Model {}
 
 Course.init({
-    user_id: {
+    instructor_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        primaryKey: true,
     },
     course_id: {
         type: DataTypes.INTEGER,
@@ -21,12 +20,19 @@ Course.init({
     institution_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        primaryKey: true,
     },
 }, {
     sequelize,
     modelName: 'Course',
-    tableName: 'user_courses',
+    tableName: 'courses',
     timestamps: false,
+    indexes: [
+        {
+            unique: true,
+            fields: ['course_id', 'institution_id']
+        }
+    ]
 });
 
 module.exports = Course;

@@ -1,14 +1,12 @@
 CREATE DATABASE IF NOT EXISTS coursesdb;
 USE coursesdb;
 
-CREATE TABLE IF NOT EXISTS user_courses (
-    user_id INT,
-    course_id INT,
+CREATE TABLE IF NOT EXISTS courses (
+    course_id INT NOT NULL,
+    instructor_id INT,
     `name` VARCHAR(20) NOT NULL,
     institution_id INT NOT NULL,
-    PRIMARY KEY (user_id, course_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
+    PRIMARY KEY (institution_id, course_id)
     );
 
 
@@ -20,8 +18,8 @@ CREATE TABLE IF NOT EXISTS grades (
     exam_period varchar(50),
     grading_status enum('open', 'closed'),
     total_grade DECIMAL(5,2),
-    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
-    FOREIGN KEY (student_id) REFERENCES users(user_id) ON DELETE CASCADE
+    institution_id INT NOT NULL,
+    FOREIGN KEY (institution_id, course_id) REFERENCES courses(institution_id, course_id) ON DELETE CASCADE
     );
 
 USE coursesdb;

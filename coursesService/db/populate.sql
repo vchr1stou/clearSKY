@@ -1,0 +1,20 @@
+use coursesdb;
+
+INSERT INTO courses (course_id, instructor_id, name, institution_id) VALUES
+(101, 1, 'Databases', 1),
+(102, 2, 'Algorithms', 1),
+(201, 3, 'Computer Vision', 2);
+
+INSERT INTO grades (course_id, student_id, question_grades, exam_period, grading_status, total_grade, institution_id) VALUES
+-- Course 101 (Databases), Institution 1
+(101, 1001, '{"q1": 5, "q2": 4.5, "q3": 3.5}', '2025 Spring', 'closed', 13.0, 1),
+(101, 1002, '{"q1": 4, "q2": 3.5, "q3": 4}', '2025 Spring', 'closed', 11.5, 1),
+(101, 1003, '{"q1": 5, "q2": 5, "q3": 4.5}', '2025 Spring', 'open', NULL, 1),
+
+-- Course 102 (Algorithms), Institution 1
+(102, 1001, '{"q1": 4, "q2": 4, "q3": 3}', '2025 Spring', 'closed', 11.0, 1),
+(102, 1002, '{"q1": 5, "q2": 5, "q3": 5}', '2025 Spring', 'closed', 15.0, 1),
+
+-- Course 201 (Computer Vision), Institution 2
+(201, 2001, '{"q1": 5, "q2": 4.5}', '2025 Winter', 'closed', 9.5, 2),
+(201, 2002, '{"q1": 4.5, "q2": 4.5}', '2025 Winter', 'open', NULL, 2);

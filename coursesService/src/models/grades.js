@@ -9,6 +9,10 @@ Grade.init({
         autoIncrement: true,
         primaryKey: true,
     },
+    course_ref_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     course_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -28,6 +32,10 @@ Grade.init({
     },
     total_grade: {
         type: DataTypes.DECIMAL(5, 2),
+    },
+    institution_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
     },
 }, {
     sequelize,

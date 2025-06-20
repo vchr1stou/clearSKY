@@ -1,20 +1,24 @@
-const {Grade, Course} = require('../models/index.js');
-// get list of (graded) courses  for a student
+const sequelize = require('../config/db');
+
 async function getMyCourses(studentId) {
-    /*We want:
-    * exam period (from Grade)
-    * grading status (from Grade)
-    * and course name (from Course)
-    * */
+    const query = `
+        SELECT 
+            g.grading_status, 
+            g.exam_period, 
+            g.total_grade,
+            c.name AS course_name
+        FROM grades g
+        JOIN courses c
+            ON g.course_id = c.course_id AND g.institution_id = c.institution_id
+        WHERE g.student_id = :studentId
+    `;
+
     try {
-        return await Grade.findAll({
-            where: {student_id: studentId},
-            attributes: ['grading_status', 'exam_period'],
-            include: [{
-                model: Course,
-                attributes: ['name'], // Include course name
-            }]
+        return await sequelize.query(query, {
+            replacements: { studentId },
+            type: sequelize.QueryTypes.SELECT
         });
+
     } catch (error) {
         console.error('Error fetching courses:', error);
         throw error;

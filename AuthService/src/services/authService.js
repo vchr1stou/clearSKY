@@ -24,10 +24,11 @@ async function registerUser(userData) {
 
     return signToken(
         {   sub: newUser.userID,
-            studentID: newUser.studentID,
-            email: newUser.email,
-            role: newUser.role
-        }
+                    studentID: newUser.studentID,
+                    email: newUser.email,
+                    role: newUser.role,
+                    institutionID: newUser.institutionID
+                }
     );
 }
 
@@ -52,10 +53,11 @@ async function loginUser(email, password) {
     // Generate JWT token
     return signToken(
         {   sub: user.userID,
-            studentID: user.studentID,
-            email: user.email,
-            role: user.role
-        }
+                    studentID: user.studentID,
+                    email: user.email,
+                    role: user.role,
+                    institutionID: user.institutionID
+                }
     );
 }
 

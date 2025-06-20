@@ -1,15 +1,18 @@
 const getMyCourses = require("../services/coursesService.js");
 
 async function getCourses(req, res) {
-    const studentId = req.params.studentId;
+    const user = req.user;
 
     try {
-        if (!studentId) {
-            return res.status(400).json({ error: 'Missing student id' });
+        if (!user.studentID) {
+            return res.status(400).json({ error: 'Missing parameters' });
         }
-        const courses = await getMyCourses(studentId);
+        if (user.role !== 'STUDENT') {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+        const courses = await getMyCourses(user.studentID);
         if (!courses) {
-            return res.status(200).json({ error: 'No courses available' });
+            return res.status(200).json({ message: 'No courses available' });
         }
         res.status(200).json(courses);
     } catch (error) {

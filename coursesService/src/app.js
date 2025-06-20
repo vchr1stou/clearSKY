@@ -22,7 +22,7 @@ app.use((err, req, res, next) => {
     if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
         return res.status(400).json({ message: 'Invalid JSON format' });
     }
-    next(err);
+    next();
 });
 
 
@@ -31,9 +31,11 @@ app.use((err, req, res, next) => {
 app.use('/api/courses', coursesRoutes);
 
 // Error handling
-app.use((err, req, res) => {
+
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).json({ message: 'Internal Server Error' });
+    next();
 });
 
 
@@ -48,4 +50,4 @@ async function startServer() {
     }
 }
 
-startServer();
+startServer().then(()=> {});
