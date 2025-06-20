@@ -14,7 +14,7 @@ export default function HomeScreen() {
       setRole(urlRole);
     }
   }, [searchParams]);
-
+  
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
       {/* Dummy Role Switch */}
@@ -134,95 +134,95 @@ export default function HomeScreen() {
 
       {/* First Colored Rectangle */}
       {role === "Student" && (
-        <div
-          onClick={() => router.push("/MyCourses")}
-          style={{
-            position: "absolute",
-            left: 237,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: 412,
-            height: 205,
-            borderRadius: 46,
-            background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)", // For Safari support
-            border: "0.3px solid rgba(255, 255, 255, 0.77)",
-            boxSizing: "border-box", // Ensures border is drawn inside
-            zIndex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            cursor: "pointer", // Add pointer cursor to indicate clickability
-            transition: "transform 0.2s ease", // Add smooth hover effect
-          }}
-          className="hover:scale-105"
-        >
+      <div
+        onClick={() => router.push("/MyCourses")}
+        style={{
+          position: "absolute",
+          left: 237,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: 412,
+          height: 205,
+          borderRadius: 46,
+          background: "rgba(149,149,149,0.25)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)", // For Safari support
+          border: "0.3px solid rgba(255, 255, 255, 0.77)",
+          boxSizing: "border-box", // Ensures border is drawn inside
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          cursor: "pointer", // Add pointer cursor to indicate clickability
+          transition: "transform 0.2s ease", // Add smooth hover effect
+        }}
+        className="hover:scale-105"
+      >
           {/* Overlay: Book icon and My Courses text */}
-          <div style={{ marginTop: 46, display: "flex", justifyContent: "center", width: "100%" }}>
-            <Image src="/book.svg" alt="Book" width={83} height={76} />
-          </div>
-          <div
-            style={{
-              marginTop: 5,
-              textAlign: "center",
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 25,
-              color: "#fff",
-              width: "100%",
-            }}
-          >
-            My Courses
-          </div>
+        <div style={{ marginTop: 46, display: "flex", justifyContent: "center", width: "100%" }}>
+          <Image src="/book.svg" alt="Book" width={83} height={76} />
         </div>
+        <div
+          style={{
+            marginTop: 5,
+            textAlign: "center",
+            fontFamily: "var(--font-roboto)",
+            fontWeight: 600,
+            fontSize: 25,
+            color: "#fff",
+            width: "100%",
+          }}
+        >
+          My Courses
+        </div>
+      </div>
       )}
 
       {/* Second Colored Rectangle */}
       {role === "Student" && (
-        <div
-          onClick={() => router.push("/Statistics")}
-          style={{
-            position: "absolute",
-            right: 237,
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: 412,
-            height: 205,
-            borderRadius: 46,
-            background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)", // For Safari support
-            border: "0.3px solid rgba(255, 255, 255, 0.77)",
-            boxSizing: "border-box", // Ensures border is drawn inside
-            zIndex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            cursor: "pointer", // Add pointer cursor to indicate clickability
-            transition: "transform 0.2s ease", // Add smooth hover effect
-          }}
-          className="hover:scale-105"
-        >
-          {/* Statistics SVG centered, 46px from top */}
-          <div style={{ marginTop: 46, display: "flex", justifyContent: "center", width: "100%" }}>
-            <Image src="/statistics.svg" alt="Statistics" width={83} height={76} />
-          </div>
-          {/* Statistics text, 5px below SVG */}
-          <div
-            style={{
-              marginTop: 5,
-              textAlign: "center",
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 25,
-              color: "#fff",
-              width: "100%",
-            }}
-          >
-            Statistics
-          </div>
+      <div
+        onClick={() => router.push("/Statistics")}
+        style={{
+          position: "absolute",
+          right: 237,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: 412,
+          height: 205,
+          borderRadius: 46,
+          background: "rgba(149,149,149,0.25)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)", // For Safari support
+          border: "0.3px solid rgba(255, 255, 255, 0.77)",
+          boxSizing: "border-box", // Ensures border is drawn inside
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          cursor: "pointer", // Add pointer cursor to indicate clickability
+          transition: "transform 0.2s ease", // Add smooth hover effect
+        }}
+        className="hover:scale-105"
+      >
+        {/* Statistics SVG centered, 46px from top */}
+        <div style={{ marginTop: 46, display: "flex", justifyContent: "center", width: "100%" }}>
+          <Image src="/statistics.svg" alt="Statistics" width={83} height={76} />
         </div>
+        {/* Statistics text, 5px below SVG */}
+        <div
+          style={{
+            marginTop: 5,
+            textAlign: "center",
+            fontFamily: "var(--font-roboto)",
+            fontWeight: 600,
+            fontSize: 25,
+            color: "#fff",
+            width: "100%",
+          }}
+        >
+          Statistics
+        </div>
+      </div>
       )}
 
       {/* Institution Manager Rectangles (same as Student, but without top overlays) */}
@@ -237,7 +237,7 @@ export default function HomeScreen() {
               width: 412,
               height: 205,
               borderRadius: 46,
-              background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
+              background: "rgba(149,149,149,0.25)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
               border: "0.3px solid rgba(255, 255, 255, 0.77)",
@@ -271,6 +271,7 @@ export default function HomeScreen() {
             </div>
           </div>
           <div
+            onClick={() => router.push('/user_management')}
             style={{
               position: "absolute",
               right: 237,
@@ -279,7 +280,7 @@ export default function HomeScreen() {
               width: 412,
               height: 205,
               borderRadius: 46,
-              background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
+              background: "rgba(149,149,149,0.25)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
               border: "0.3px solid rgba(255, 255, 255, 0.77)",
@@ -292,7 +293,6 @@ export default function HomeScreen() {
               transition: "transform 0.2s ease",
             }}
             className="hover:scale-105"
-            onClick={() => {}}
           >
             <img
               src="/user_management.svg"
@@ -340,7 +340,7 @@ export default function HomeScreen() {
               width: 315,
               height: 205,
               borderRadius: 46,
-              background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
+              background: "rgba(149,149,149,0.25)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
               border: "0.3px solid rgba(255, 255, 255, 0.77)",
@@ -395,7 +395,7 @@ export default function HomeScreen() {
             </div>
           </div>
           <div
-            onClick={() => {}}
+            onClick={() => router.push('/PostGrades')}
             style={{
               position: "absolute",
               top: "50%",
@@ -404,7 +404,7 @@ export default function HomeScreen() {
               width: 315,
               height: 205,
               borderRadius: 46,
-              background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
+              background: "rgba(149,149,149,0.25)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
               border: "0.3px solid rgba(255, 255, 255, 0.77)",
@@ -449,7 +449,7 @@ export default function HomeScreen() {
             </div>
           </div>
           <div
-            onClick={() => {}}
+            onClick={() => router.push('/statistics_instructor')}
             style={{
               position: "absolute",
               top: "50%",
@@ -458,7 +458,7 @@ export default function HomeScreen() {
               width: 315,
               height: 205,
               borderRadius: 46,
-              background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
+              background: "rgba(149,149,149,0.25)",
               backdropFilter: "blur(10px)",
               WebkitBackdropFilter: "blur(10px)",
               border: "0.3px solid rgba(255, 255, 255, 0.77)",

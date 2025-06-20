@@ -79,7 +79,7 @@ export default function ReviewRequests() {
             Review Requests
           </div>
           <div
-            onClick={() => {}}
+            onClick={() => router.push('/PostGrades')}
             style={{
               marginLeft: 18,
               fontSize: 23,
