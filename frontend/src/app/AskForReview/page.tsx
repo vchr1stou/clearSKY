@@ -173,8 +173,8 @@ export default function AskForReview() {
             New Review Request - {course} ({period})
           </div>
         </div>
-        {/* New rectangle for review request content */}
-        <div
+        {/* New rectangle for review request content as a textarea */}
+        <textarea
           style={{
             position: "absolute",
             top: 25 + 53 + 29.5, // 25 (header top) + 53 (header height) + 29.5
@@ -185,7 +185,17 @@ export default function AskForReview() {
             borderRadius: 42,
             background: "rgba(255,255,255,0.18)",
             zIndex: 2,
+            color: '#fff',
+            fontFamily: 'var(--font-roboto)',
+            fontSize: 22,
+            fontWeight: 400,
+            padding: 32,
+            outline: 'none',
+            border: 'none',
+            resize: 'none',
+            boxSizing: 'border-box',
           }}
+          placeholder="Write your review request here..."
         />
         {/* Submit Request button rectangle */}
         <div
