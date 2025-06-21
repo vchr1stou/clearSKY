@@ -1,7 +1,10 @@
 CREATE DATABASE IF NOT EXISTS coursesdb;
 USE coursesdb;
 
-CREATE TABLE IF NOT EXISTS courses (
+DROP TABLE IF EXISTS grades;
+DROP TABLE IF EXISTS courses;
+
+CREATE TABLE courses (
     course_id INT NOT NULL,
     instructor_id INT,
     `name` VARCHAR(20) NOT NULL,
@@ -10,7 +13,7 @@ CREATE TABLE IF NOT EXISTS courses (
     );
 
 
-CREATE TABLE IF NOT EXISTS grades (
+CREATE TABLE grades (
     grade_id INT AUTO_INCREMENT PRIMARY KEY,
     course_id INT,
     student_id INT,

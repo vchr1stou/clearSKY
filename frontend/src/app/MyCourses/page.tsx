@@ -1,19 +1,46 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
-const courses = [
-  { course: "Physics", period: "Spring 2025" },
-  { course: "Mathematics", period: "Fall 2024" },
-  { course: "Chemistry", period: "Spring 2024" },
-  { course: "Biology", period: "Fall 2023" },
-  { course: "Computer Science", period: "Spring 2023" },
-  { course: "History", period: "Fall 2022" },
-];
+type Course = {
+  course_name: string;
+  exam_period: string;
+  grading_status: string;
+};
 
 export default function MyCourses() {
   const router = useRouter();
+  const [debugInfo, setDebugInfo] = useState<unknown>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) return;
+    let role: string | undefined = undefined;
+    try {
+      const decoded = jwtDecode<{ role?: string }>(token);
+      role = decoded.role;
+    } catch {
+      setDebugInfo({ error: "Invalid token" });
+      return;
+    }
+    if (role === "STUDENT") {
+      fetch("http://localhost:3002/api/courses/myCourses", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(async (res) => {
+          const data = await res.json();
+          setDebugInfo(data);
+          if (Array.isArray(data)) setCourses(data);
+        })
+        .catch((err: Error) => setDebugInfo({ error: err.message }));
+    }
+  }, []);
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
@@ -223,176 +250,178 @@ export default function MyCourses() {
             overflowY: "auto",
           }}
         >
-          {courses.map((row, i) => (
-            <div
-              key={"course-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 30,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.course}
-            </div>
-          ))}
-          {courses.map((row, i) => (
-            <div
-              key={"period-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 270.67,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.period}
-            </div>
-          ))}
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={"open-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 511.33,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              Open
-            </div>
-          ))}
-          {courses.map((row, i) => (
-            <div
-              key={"action-rect-" + i}
-              onClick={() => router.push(`/ViewMyGrade?course=${encodeURIComponent(row.course)}&period=${encodeURIComponent(row.period)}`)}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 13.5,
-                left: 752,
-                width: 162,
-                height: 33,
-                borderRadius: 100,
-                background: "rgba(255,255,255,0.18)",
-                zIndex: 3,
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
-                <img src="/view_my_grades.svg" alt="View My Grades" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
-              </div>
-              <div
-                style={{
-                  position: "absolute",
-                  left: 35.5, // 16.5 + 13 + 6
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontFamily: "var(--font-roboto)",
-                  fontWeight: 600,
-                  fontSize: 15,
-                  color: "#fff",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                View My Grades
-              </div>
-            </div>
-          ))}
-          {courses.map((row, i) => (
-            <div
-              key={"action-rect-2-" + i}
-              onClick={() => router.push(`/AskForReview?course=${encodeURIComponent(row.course)}&period=${encodeURIComponent(row.period)}`)}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 13.5,
-                left: 935,
-                width: 162,
-                height: 33,
-                borderRadius: 100,
-                background: "rgba(255,255,255,0.18)",
-                zIndex: 3,
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
-                <img src="/ask_for_review.svg" alt="Ask For Review" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
-              </div>
-              <div
-                style={{
-                  position: "absolute",
-                  left: 35.5, // 16.5 + 13 + 6
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontFamily: "var(--font-roboto)",
-                  fontWeight: 600,
-                  fontSize: 15,
-                  color: "#fff",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Ask For Review
-              </div>
-            </div>
-          ))}
-          {courses.map((row, i) => (
-            <div
-              key={"action-rect-3-" + i}
-              onClick={() => router.push(`/ViewReviewStatus?course=${encodeURIComponent(row.course)}&period=${encodeURIComponent(row.period)}`)}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 13.5,
-                left: 1118,
-                width: 192,
-                height: 33,
-                borderRadius: 100,
-                background: "rgba(255,255,255,0.18)",
-                zIndex: 3,
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
-                <img src="/view_review_status.svg" alt="View Review Status" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
-              </div>
-              <div
-                style={{
-                  position: "absolute",
-                  left: 35.5, // 16.5 + 13 + 6
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontFamily: "var(--font-roboto)",
-                  fontWeight: 600,
-                  fontSize: 15,
-                  color: "#fff",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                View Review Status
-              </div>
-            </div>
-          ))}
-          {/* 7 horizontal lines as row separators */}
-          {Array.from({ length: 7 }).map((_, i) => (
+          {courses.length === 0 ? (
+            <div style={{ color: '#fff', fontSize: 22, marginLeft: 30, marginTop: 30 }}>No courses found.</div>
+          ) : (
+            courses.map((row, i) => {
+              // Normalize grading_status for display and logic
+              const statusRaw = row.grading_status || '';
+              const status = statusRaw.trim().toLowerCase() === 'closed' ? 'Closed' : 'Open';
+              return (
+                <React.Fragment key={row.course_name + row.exam_period}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 18.5,
+                      left: 30,
+                      fontFamily: "var(--font-roboto)",
+                      fontWeight: 600,
+                      fontSize: 25,
+                      color: "#fff",
+                      zIndex: 2,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {row.course_name}
+                  </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 18.5,
+                      left: 270.67,
+                      fontFamily: "var(--font-roboto)",
+                      fontWeight: 600,
+                      fontSize: 25,
+                      color: "#fff",
+                      zIndex: 2,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {row.exam_period}
+                  </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 18.5,
+                      left: 511.33,
+                      fontFamily: "var(--font-roboto)",
+                      fontWeight: 600,
+                      fontSize: 25,
+                      color: "#fff",
+                      zIndex: 2,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {status}
+                  </div>
+                  {/* Actions column: View My Grades */}
+                  <div
+                    key={"action-rect-" + i}
+                    onClick={() => router.push(`/ViewMyGrade?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}`)}
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 13.5,
+                      left: 752,
+                      width: 162,
+                      height: 33,
+                      borderRadius: 100,
+                      background: "rgba(255,255,255,0.18)",
+                      zIndex: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
+                      <img src="/view_my_grades.svg" alt="View My Grades" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 35.5, // 16.5 + 13 + 6
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontFamily: "var(--font-roboto)",
+                        fontWeight: 600,
+                        fontSize: 15,
+                        color: "#fff",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      View My Grades
+                    </div>
+                  </div>
+                  {/* Actions column: Ask For Review */}
+                  <div
+                    key={"action-rect-2-" + i}
+                    onClick={status === 'Closed' ? undefined : () => router.push(`/AskForReview?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}`)}
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 13.5,
+                      left: 935,
+                      width: 162,
+                      height: 33,
+                      borderRadius: 100,
+                      background: status === 'Closed' ? "rgba(200,200,200,0.35)" : "rgba(255,255,255,0.18)",
+                      zIndex: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: status === 'Closed' ? "not-allowed" : "pointer",
+                      opacity: status === 'Closed' ? 0.5 : 1,
+                    }}
+                  >
+                    <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
+                      <img src="/ask_for_review.svg" alt="Ask For Review" width={15} height={18} style={{ width: 15, height: 18, display: "block", filter: status === 'Closed' ? 'grayscale(1)' : 'none' }} />
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 35.5, // 16.5 + 13 + 6
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontFamily: "var(--font-roboto)",
+                        fontWeight: 600,
+                        fontSize: 15,
+                        color: '#fff',
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Ask For Review
+                    </div>
+                  </div>
+                  {/* Actions column: View Review Status */}
+                  <div
+                    key={"action-rect-3-" + i}
+                    onClick={() => router.push(`/ViewReviewStatus?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}`)}
+                    style={{
+                      position: "absolute",
+                      top: 57 * i + 57 / 2 - 13.5,
+                      left: 1118,
+                      width: 192,
+                      height: 33,
+                      borderRadius: 100,
+                      background: "rgba(255,255,255,0.18)",
+                      zIndex: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
+                      <img src="/view_review_status.svg" alt="View Review Status" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
+                    </div>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 35.5, // 16.5 + 13 + 6
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        fontFamily: "var(--font-roboto)",
+                        fontWeight: 600,
+                        fontSize: 15,
+                        color: "#fff",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      View Review Status
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })
+          )}
+          {/* Row separators: one per course plus header */}
+          {Array.from({ length: Math.max(1, courses.length) }).map((_, i) => (
             <div
               key={"row-line-" + i}
               style={{
@@ -411,6 +440,10 @@ export default function MyCourses() {
       </div>
 
       {/* Content will be added here */}
+      <div style={{ position: "absolute", bottom: 10, left: 10, color: "#fff", background: "rgba(0,0,0,0.5)", padding: 10, borderRadius: 8, zIndex: 100 }}>
+        <strong>Debug Output:</strong>
+        <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{JSON.stringify(debugInfo, null, 2)}</pre>
+      </div>
     </div>
   );
 } 

@@ -38,7 +38,7 @@ export default function Home() {
       <div
         style={{
           position: "absolute",
-          top: 360,
+          top: 320,
           left: 111,
           zIndex: 1,
         }}
@@ -56,7 +56,7 @@ export default function Home() {
       <div
         style={{
           position: "absolute",
-          top: 377 + 80, // clearsky top + new clearsky height + margin
+          top: 337 + 80,
           left: 115,
           zIndex: 2,
         }}
@@ -69,7 +69,7 @@ export default function Home() {
       <div
         style={{
           position: "absolute",
-          top: 310,
+          top: 270,
           left: 111 + 400 + 350 + 30,
           zIndex: 2,
         }}
@@ -86,7 +86,7 @@ export default function Home() {
         onChange={e => setEmail(e.target.value)}
         style={{
           position: "absolute",
-          top: 391,
+          top: 351,
           left: 111 + 400 + 350 + 30,
           width: 356,
           height: 49,
@@ -106,7 +106,7 @@ export default function Home() {
       <div
         style={{
           position: "absolute",
-          top: 391 + 52 + 19,
+          top: 351 + 52 + 19,
           left: 111 + 400 + 350 + 30,
           width: 356,
           height: 49,
@@ -167,8 +167,8 @@ export default function Home() {
       <button
         style={{
           position: "absolute",
-          top: 391 + 52 + 19 + 49 + 19, // second input top + height + spacing
-          left: (111 + 400 + 350 + 30) + (356 / 2) - (180 / 2), // center under input boxes
+          top: 351 + 52 + 19 + 49 + 19,
+          left: (111 + 400 + 350 + 30) + (356 / 2) - (180 / 2),
           width: 180,
           height: 40,
           borderRadius: 55,
@@ -225,7 +225,7 @@ export default function Home() {
         <div
           style={{
             position: "absolute",
-            top: 391 + 52 + 19 + 49 + 19 + 40 + 16, // below button
+            top: 391 + 52 + 19 + 49 + 19 + 40 + 16,
             left: (111 + 400 + 350 + 30),
             width: 356,
             color: "#ff4d4f",
