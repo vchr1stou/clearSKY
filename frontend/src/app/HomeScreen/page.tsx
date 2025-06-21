@@ -17,45 +17,6 @@ export default function HomeScreen() {
   
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
-      {/* Dummy Role Switch */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 40,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 10,
-          display: "flex",
-          gap: 16,
-          background: "rgba(128,128,128,0.3)",
-          borderRadius: 30,
-          padding: "8px 24px",
-          border: "0.3px solid rgba(255,255,255,0.77)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-          alignItems: "center",
-        }}
-      >
-        {["Student", "Institution Manager", "Instructor"].map(option => (
-          <button
-            key={option}
-            onClick={() => setRole(option)}
-            style={{
-              background: role === option ? "#0092FA" : "transparent",
-              color: role === option ? "#fff" : "#222",
-              border: "none",
-              borderRadius: 20,
-              padding: "8px 18px",
-              fontWeight: 600,
-              fontFamily: "var(--font-roboto)",
-              fontSize: 18,
-              cursor: "pointer",
-              transition: "background 0.2s, color 0.2s",
-            }}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
       {/* Background image */}
       <Image
         src="/background_home.png"

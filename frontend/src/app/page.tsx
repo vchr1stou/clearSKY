@@ -2,6 +2,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+
+interface JwtPayload {
+  email?: string;
+  sub?: string;
+  role?: string;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -187,8 +194,22 @@ export default function Home() {
               const data = await res.json();
               if (data.token) {
                 localStorage.setItem("authToken", data.token);
+                // Decode JWT to get email and role
+                let decoded: JwtPayload;
+                try {
+                  decoded = jwtDecode(data.token);
+                } catch {
+                  setError("Invalid token");
+                  return;
+                }
+                // Get role from decoded JWT and navigate accordingly
+                let roleParam = decoded.role;
+                if (roleParam === "STUDENT") roleParam = "Student";
+                else if (roleParam === "INSTRUCTOR") roleParam = "Instructor";
+                else if (roleParam === "INSTITUTION_REPRESENTATIVE" || roleParam === "INSTITUTION MANAGER") roleParam = "Institution Manager";
+                router.push(`/HomeScreen?role=${encodeURIComponent(roleParam || "Student")}`);
+                return;
               }
-              router.push("/HomeScreen");
             } else {
               setError("Wrong email or password");
             }
