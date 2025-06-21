@@ -7,6 +7,8 @@ export default function Home() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
 
   return (
     <div
@@ -72,7 +74,9 @@ export default function Home() {
       {/* Username input */}
       <input
         type="text"
-        placeholder="Enter your username"
+        placeholder="Enter your email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
         style={{
           position: "absolute",
           top: 391,
@@ -171,10 +175,51 @@ export default function Home() {
           cursor: "pointer",
         }}
         className="shadow-md font-bold"
-        onClick={() => router.push("/HomeScreen")}
+        onClick={async () => {
+          setError("");
+          try {
+            const res = await fetch("http://localhost:3000/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.token) {
+                localStorage.setItem("authToken", data.token);
+              }
+              router.push("/HomeScreen");
+            } else {
+              setError("Wrong email or password");
+            }
+          } catch {
+            setError("Wrong email or password");
+          }
+        }}
       >
         Continue
       </button>
+      {/* Error message */}
+      {error && (
+        <div
+          style={{
+            position: "absolute",
+            top: 391 + 52 + 19 + 49 + 19 + 40 + 16, // below button
+            left: (111 + 400 + 350 + 30),
+            width: 356,
+            color: "#ff4d4f",
+            fontWeight: 700,
+            fontSize: 18,
+            background: "rgba(0,0,0,0.4)",
+            borderRadius: 12,
+            padding: "8px 16px",
+            zIndex: 3,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </div>
+      )}
     </div>
   );
 }

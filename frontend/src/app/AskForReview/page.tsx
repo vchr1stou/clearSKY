@@ -85,7 +85,7 @@ export default function AskForReview() {
         </div>
         {/* Sign Out button (rightmost) */}
         <div
-          onClick={() => router.push("/")}
+          onClick={() => { localStorage.removeItem("authToken"); router.push("/"); }}
           style={{
             fontSize: 23,
             fontFamily: "var(--font-roboto)",
