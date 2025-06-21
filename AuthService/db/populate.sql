@@ -1,11 +1,21 @@
-use authdb;
+-- This script populates the User table with sample data for testing purposes.
+USE authdb;
 
 INSERT INTO `User` (studentID, FullName, email, telephone, password, role, institutionID) VALUES
-(1001, 'Alice Johnson', 'alice.johnson@example.com', '123-456-7890', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
-(1002, 'Bob Smith', 'bob.smith@example.com', '123-555-7890', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
-(1003, 'Carol Lee', 'carol.lee@example.com', '123-666-7890', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
-(2001, 'David Kim', 'david.kim@example.com', '987-654-3210', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2),
-(2002, 'Eva Green', 'eva.green@example.com', '987-000-3210', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2);
+-- Institution 1 students
+(1001, 'Alice Smith', 'alice1001@example.com', '123-456-1001', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
+(1002, 'Bob Johnson', 'bob1002@example.com', '123-456-1002', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
+(1003, 'Charlie Lee', 'charlie1003@example.com', '123-456-1003', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
+(1004, 'Diana Patel', 'diana1004@example.com', '123-456-1004', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
+(1005, 'Ethan Brown', 'ethan1005@example.com', '123-456-1005', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),
+
+-- Institution 2 students
+(2001, 'Fiona Green', 'fiona2001@example.com', '123-456-2001', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2),
+(2002, 'George Harris', 'george2002@example.com', '123-456-2002', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2),
+(2003, 'Hannah Kim', 'hannah2003@example.com', '123-456-2003', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2),
+(2004, 'Isaac Moore', 'isaac2004@example.com', '123-456-2004', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2),
+(2005, 'Julia Nguyen', 'julia2005@example.com', '123-456-2005', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 2);
+
 
 INSERT INTO `User` (studentID, FullName, email, telephone, password, role, institutionID) VALUES
 (NULL, 'Prof. John Doe', 'john.doe@example.com', '111-222-3333', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'INSTRUCTOR', 1),
