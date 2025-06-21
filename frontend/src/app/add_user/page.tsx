@@ -3,12 +3,19 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function AddUser() {
   const router = useRouter();
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectorPosition, setSelectorPosition] = useState<{top: number, left: number, width: number} | null>(null);
+  const [studentId, setStudentId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const selectTypeRef = useRef<HTMLDivElement>(null);
 
   // Open selector and calculate position
@@ -45,6 +52,67 @@ export default function AddUser() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [selectorOpen]);
+
+  const handleSubmit = async () => {
+    setMessage(null);
+    setError(null);
+
+    // Validate required fields
+    if (!selectedType || !email || !password || !fullName) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    // Get institutionID from JWT in localStorage
+    const token = localStorage.getItem("authToken");
+    let institutionID = "";
+    if (token) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const decoded: any = jwtDecode(token);
+        institutionID = decoded.institutionID;
+      } catch {
+        setError("Invalid token");
+        return;
+      }
+    } else {
+      setError("No auth token found");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3001/api/userManagement/createUser", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          studentID: selectedType === "Student" ? studentId : null,
+          FullName: fullName,
+          email: email,
+          password: password,
+          role: selectedType === "Institution Manager" ? "INSTITUTION_REPRESENTATIVE" : selectedType?.toUpperCase(),
+          institutionID: Number(institutionID),
+        }),
+      });
+      if (res.ok) {
+        setMessage("User was created successfully");
+        setError(null);
+        // Clear form fields
+        setEmail("");
+        setPassword("");
+        setFullName("");
+        setStudentId("");
+        setSelectedType(null);
+      } else {
+        const data = await res.json();
+        setError(data.message || "Failed to create user");
+      }
+    } catch {
+      setError("Failed to create user");
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
@@ -135,7 +203,7 @@ export default function AddUser() {
       <div
         style={{
           position: "absolute",
-          top: 30 + 60 + 40, // header top + header height + spacing
+          top: 30 + 60 + 20, // header top + header height + spacing (reduced from 40 to 20)
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 1,
@@ -144,8 +212,8 @@ export default function AddUser() {
         <Image
           src="/clearsky.svg"
           alt="Clearsky"
-          width={400}
-          height={131}
+          width={300}
+          height={98}
           priority
         />
       </div>
@@ -153,11 +221,11 @@ export default function AddUser() {
       <div
         style={{
           position: "absolute",
-          top: 30 + 60 + 40 + 131 + 30, // nav top + nav height + spacing + clearsky height + 50px
+          top: 30 + 60 + 20 + 98 + 10, // nav top + nav height + spacing + clearsky height + 10px (reduced from 20px)
           left: "50%",
           transform: "translateX(-50%)",
           width: 1340,
-          height: 470,
+          height: 550,
           borderRadius: 46,
           background: "rgba(149,149,149,0.25)",
           backdropFilter: "blur(10px)",
@@ -225,7 +293,7 @@ export default function AddUser() {
         <div
           style={{
             position: "absolute",
-            top: 24 + 49 + 20 + 39 + 10, // top of inner rectangle + height + 20px + Type rectangle height + 10px
+            top: 24 + 49 + 20 + 39 + 10, // previous position + text height + 10px
             left: 25,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
@@ -235,7 +303,7 @@ export default function AddUser() {
             pointerEvents: "none",
           }}
         >
-          User Name:
+          Email:
         </div>
         {/* User Name input rectangle */}
         <div
@@ -254,7 +322,9 @@ export default function AddUser() {
         >
           <input
             type="text"
-            placeholder="Enter User Name"
+            placeholder="Enter Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             style={{
               width: "100%",
               height: "100%",
@@ -274,7 +344,7 @@ export default function AddUser() {
             autoComplete="off"
           />
         </div>
-        {/* Second User Name: text */}
+        {/* Password: text */}
         <div
           style={{
             position: "absolute",
@@ -288,9 +358,9 @@ export default function AddUser() {
             pointerEvents: "none",
           }}
         >
-          Full Name:
+          Password:
         </div>
-        {/* Second User Name input rectangle */}
+        {/* Password input rectangle */}
         <div
           style={{
             position: "absolute",
@@ -306,8 +376,65 @@ export default function AddUser() {
           }}
         >
           <input
+            type="password"
+            placeholder="Enter Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: "100%",
+              height: "100%",
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "#fff",
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              fontSize: 20,
+              paddingLeft: 20,
+              paddingRight: 20,
+              textAlign: "left",
+              borderRadius: 100,
+              boxSizing: "border-box",
+            }}
+            autoComplete="new-password"
+          />
+        </div>
+        {/* Second User Name: text */}
+        <div
+          style={{
+            position: "absolute",
+            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10, // previous position + input height + 10px
+            left: 25,
+            fontFamily: "var(--font-roboto)",
+            fontWeight: 600,
+            fontSize: 25,
+            color: "#fff",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        >
+          Full Name:
+        </div>
+        {/* Second User Name input rectangle */}
+        <div
+          style={{
+            position: "absolute",
+            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10, // previous position + text height + 10px
+            left: 25,
+            width: 1290,
+            height: 39,
+            borderRadius: 100,
+            background: "rgba(255,255,255,0.18)",
+            zIndex: 3,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <input
             type="text"
             placeholder="Enter Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             style={{
               width: "100%",
               height: "100%",
@@ -331,7 +458,7 @@ export default function AddUser() {
         <div
           style={{
             position: "absolute",
-            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10, // previous position + input height + 10px
+            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10, // previous position + input height + 10px
             left: 25,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
@@ -341,18 +468,18 @@ export default function AddUser() {
             pointerEvents: "none",
           }}
         >
-          ID:
+          Student ID:
         </div>
         {/* Third User Name input rectangle */}
         <div
           style={{
             position: "absolute",
-            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10, // previous position + text height + 10px
+            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10, // previous position + text height + 10px
             left: 25,
             width: 1290,
             height: 39,
             borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
+            background: selectedType !== "Student" ? "rgba(128,128,128,0.3)" : "rgba(255,255,255,0.18)",
             zIndex: 3,
             display: "flex",
             alignItems: "center",
@@ -362,14 +489,23 @@ export default function AddUser() {
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
-            placeholder="Enter ID"
+            placeholder="Enter Student ID"
+            value={studentId}
+            onChange={(e) => {
+              if (selectedType === "Student") {
+                // Only allow numbers
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                setStudentId(val);
+              }
+            }}
+            disabled={selectedType !== "Student"}
             style={{
               width: "100%",
               height: "100%",
               background: "transparent",
               border: "none",
               outline: "none",
-              color: "#fff",
+              color: selectedType !== "Student" ? "rgba(255,255,255,0.5)" : "#fff",
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
               fontSize: 20,
@@ -378,21 +514,18 @@ export default function AddUser() {
               textAlign: "left",
               borderRadius: 100,
               boxSizing: "border-box",
+              cursor: selectedType !== "Student" ? "not-allowed" : "text",
             }}
             autoComplete="off"
             maxLength={10}
-            onChange={(e) => {
-              // Only allow numbers
-              const val = e.target.value.replace(/[^0-9]/g, "");
-              e.target.value = val;
-            }}
           />
         </div>
         {/* Add User button rectangle */}
         <div
+          onClick={handleSubmit}
           style={{
             position: "absolute",
-            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 49 + 10, // previous position + input height + 10px
+            top: 24 + 49 + 20 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 10 + 25 + 10 + 39 + 20, // previous position + input height + 20px (increased from 10px)
             left: 25 + 50 + 30 + 1010 , // left of Type text + width of "Type:" + 30px + Type rectangle width - Add User rectangle width
             width: 200,
             height: 39,
@@ -417,6 +550,46 @@ export default function AddUser() {
             Add User
           </div>
         </div>
+        {message && (
+          <div style={{ 
+            position: "absolute", 
+            top: "50%", 
+            left: "50%", 
+            transform: "translate(-50%, -50%)", 
+            zIndex: 10,
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            minHeight: 200 
+          }}>
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="32" fill="#27ae60"/>
+              <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div style={{ color: '#27ae60', fontWeight: 700, fontSize: 20, marginTop: 18, textAlign: 'center' }}>
+              User was created successfully
+            </div>
+          </div>
+        )}
+        {error && (
+          <div style={{ 
+            position: "absolute", 
+            top: "50%", 
+            left: "50%", 
+            transform: "translate(-50%, -50%)", 
+            zIndex: 10,
+            color: '#f44', 
+            fontWeight: 600, 
+            fontSize: 18, 
+            textAlign: 'center',
+            background: "rgba(0,0,0,0.8)",
+            padding: "20px",
+            borderRadius: "10px"
+          }}>
+            {error}
+          </div>
+        )}
         {/* Type selection rectangle */}
         <div
           ref={selectTypeRef}

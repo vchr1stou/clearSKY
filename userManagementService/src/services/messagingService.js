@@ -81,6 +81,40 @@ class MessagingService {
         }
     }
 
+    async sendUserCreationMessage(userData) {
+        try {
+            if (!this.channel) {
+                await this.connect();
+            }
+
+            const message = {
+                type: 'user_creation',
+                email: userData.email,
+                password: userData.password,
+                studentID: userData.studentID,
+                FullName: userData.FullName,
+                telephone: userData.telephone,
+                role: userData.role,
+                institutionID: userData.institutionID,
+                timestamp: new Date().toISOString()
+            };
+
+            // Send message to queue
+            await this.channel.sendToQueue(
+                this.queueName,
+                Buffer.from(JSON.stringify(message)),
+                {
+                    persistent: true // Message survives broker restart
+                }
+            );
+
+            console.log('User creation message sent to queue:', message.email);
+        } catch (error) {
+            console.error('Failed to send user creation message:', error);
+            throw error;
+        }
+    }
+
     async close() {
         if (this.channel) {
             await this.channel.close();

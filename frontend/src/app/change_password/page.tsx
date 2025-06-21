@@ -137,7 +137,7 @@ export default function ChangePassword() {
               fontWeight: 600,
             }}
           >
-            Change Password
+            User Management
           </div>
         </div>
         {/* Sign Out button (rightmost) */}

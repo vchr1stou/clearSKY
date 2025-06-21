@@ -1,5 +1,5 @@
 const User = require('../models/user.js');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const messagingService = require('./messagingService.js');
 
 // Create a new user
@@ -29,6 +29,23 @@ async function createUser(userData) {
         role: role,
         institutionID: institutionID,
     });
+
+    // Send message to AuthService to create user in authdb
+    try {
+        await messagingService.sendUserCreationMessage({
+            email: email,
+            password: password, // Send the original password, not the hashed one
+            studentID: studentID,
+            FullName: FullName,
+            telephone: telephone,
+            role: role,
+            institutionID: institutionID
+        });
+    } catch (error) {
+        console.error('Failed to send user creation message:', error);
+        // Don't throw error here, as the main database was updated successfully
+    }
+
     return newUser;
 }
 
@@ -67,7 +84,7 @@ async function changePassword(userData) {
     try {
         await messagingService.sendPasswordUpdateMessage({
             email: email,
-            password: hashedPassword
+            password: password // Send the original password, not the hashed one
         });
     } catch (error) {
         console.error('Failed to send password update message:', error);

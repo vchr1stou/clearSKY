@@ -1,5 +1,6 @@
 const amqp = require('amqplib');
 const User = require('../models/user.js');
+const bcrypt = require('bcryptjs');
 
 class MessageConsumer {
     constructor() {
@@ -52,12 +53,37 @@ class MessageConsumer {
                             console.log('Deleted rows from authdb:', deletedCount);
                             
                             console.log('User removed from authdb for:', message.email);
+                        } else if (message.type === 'user_creation') {
+                            // Handle user creation
+                            console.log('Processing user creation for:', message.email);
+                            
+                            // Check if user already exists in authdb
+                            const existingUser = await User.findOne({ where: { email: message.email } });
+                            if (existingUser) {
+                                console.log('User already exists in authdb for:', message.email);
+                            } else {
+                                // Create user in authdb with all provided data
+                                await User.create({
+                                    email: message.email,
+                                    password: message.password,
+                                    studentID: message.studentID,
+                                    FullName: message.FullName,
+                                    telephone: message.telephone,
+                                    role: message.role,
+                                    institutionID: message.institutionID
+                                });
+                                
+                                console.log('User created in authdb for:', message.email);
+                            }
                         } else {
                             // Handle password update (backward compatibility)
                             console.log('Processing password update for:', message.email);
                             
+                            // Hash the password before updating
+                            const hashedPassword = await bcrypt.hash(message.password, 10);
+                            
                             await User.update(
-                                { password: message.password },
+                                { password: hashedPassword },
                                 { where: { email: message.email } }
                             );
                             
