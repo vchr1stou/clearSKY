@@ -21,13 +21,13 @@ JSON body:
 }
 ```
 
-### PUT api/userManagement/updatePassword
+### PUT api/userManagement/changePassword
 JSON body:
 ```json
 {
   "email": "string",
   "password": "string",
-  "role": "string",
+  "studentID": "string",
   "institutionId": "string"
 }
 ```

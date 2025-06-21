@@ -1,4 +1,4 @@
-use authdb;
+use usermanagementdb;
 
 INSERT INTO `User` (studentID, FullName, email, telephone, password, role, institutionID) VALUES
 (1001, 'Alice Johnson', 'alice.johnson@example.com', '123-456-7890', '$2b$10$dbH2AHfhq7fItaLdiyzldeZj/e1nKbLGVOPMRC5MKULXO55GWK.9q', 'STUDENT', 1),

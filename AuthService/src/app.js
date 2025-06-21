@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const { initDB } = require('./models/index');
+const messageConsumer = require('./services/messageConsumer');
 
 const app = express();
 
@@ -25,8 +26,6 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
-
-
 // Define routes
 app.use('/api/auth', authRoutes);
 
@@ -36,10 +35,18 @@ app.use((err, req, res) => {
     res.status(err.status || 500).json({ message: 'Internal Server Error' });
 });
 
-
 async function startServer() {
     try {
         await initDB();
+        
+        // Start the message consumer
+        try {
+            await messageConsumer.startConsuming();
+        } catch (error) {
+            console.error('Failed to start message consumer:', error);
+            // Don't exit the server if RabbitMQ is not available
+        }
+        
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => console.log(`Auth service running on port ${PORT}`));
     } catch (err) {

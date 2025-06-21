@@ -1,4 +1,4 @@
-const {createUser, changePassword} = require('../services/userManagementService.js');
+const {createUser, changePassword, getUsersByInstitution} = require('../services/userManagementService.js');
 
 
 async function register(req, res, next) {
@@ -20,9 +20,11 @@ async function register(req, res, next) {
 
 async function changePassw(req, res, next) {
     const { email, password, studentID, institutionID } = req.body;
+    
     if (!email || !password || !studentID || !institutionID) {
         return res.status(400).json({ message: 'Invalid or missing required fields' });
     }
+    
     try {
         const updatedUser = await changePassword(req.body);
         res.status(200).json({ userId: updatedUser.userId, message: 'Password changed successfully' });
@@ -35,4 +37,17 @@ async function changePassw(req, res, next) {
     }
 }
 
-module.exports = {register, changePassw};
+async function getUsersForInstitution(req, res, next) {
+    try {
+        const institutionID = req.user.institutionID;
+        if (!institutionID) {
+            return res.status(400).json({ message: 'Institution ID not found in user context' });
+        }
+        const users = await getUsersByInstitution(institutionID);
+        res.status(200).json(users);
+    } catch (error) {
+        next(error);
+    }
+}
+
+module.exports = {register, changePassw, getUsersForInstitution};

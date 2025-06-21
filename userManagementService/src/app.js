@@ -25,13 +25,11 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
-
-
 // Define routes
 app.use('/api/userManagement', userRoutes);
 
 // Error handling
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).json({ message: 'Internal Server Error' });
 });

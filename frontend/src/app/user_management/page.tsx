@@ -1,21 +1,57 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-const users = [
-  { username: "jappleseed", fullName: "John Appleseed", id: "1234567890", type: "Student" },
-  { username: "msmith", fullName: "Mary Smith", id: "1234567891", type: "Instructor" },
-  { username: "djohnson", fullName: "David Johnson", id: "1234567892", type: "Student" },
-  { username: "sbrown", fullName: "Sarah Brown", id: "1234567893", type: "Instructor" },
-  { username: "mwilson", fullName: "Michael Wilson", id: "1234567894", type: "Student" },
-  { username: "ljones", fullName: "Lisa Jones", id: "1234567895", type: "Student" },
-];
-
 export default function UserManagement() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [apiUsers, setApiUsers] = useState<any[] | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setApiError("No auth token found in localStorage");
+        setApiUsers(null);
+        return;
+      }
+      try {
+        const response = await fetch("http://localhost:3001/api/userManagement/usersByInstitution", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        setApiUsers(data);
+        setApiError(null);
+      } catch (error) {
+        setApiError("Error fetching users by institution: " + (error instanceof Error ? error.message : String(error)));
+        setApiUsers(null);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
+      {/* DEBUG: Show API response at the top of the page */}
+      {apiError && (
+        <div style={{ background: '#ffdddd', color: '#a00', padding: 10, marginBottom: 10, borderRadius: 8, maxWidth: 800, wordBreak: 'break-all', zIndex: 10000, position: 'relative' }}>
+          <strong>Error:</strong> {apiError}
+        </div>
+      )}
+      <div style={{ background: 'white', color: 'black', padding: 10, marginBottom: 10, borderRadius: 8, maxWidth: 800, wordBreak: 'break-all', zIndex: 10000, position: 'relative' }}>
+        <strong>API Response (First Entry):</strong>
+        <pre style={{ margin: 0, fontSize: 14 }}>
+          {apiUsers
+            ? Array.isArray(apiUsers)
+              ? JSON.stringify(apiUsers[0], null, 2)
+              : JSON.stringify(apiUsers, null, 2)
+            : 'Loading...'}
+        </pre>
+      </div>
       {/* Background image */}
       <Image
         src="/background_home.png"
@@ -193,28 +229,13 @@ export default function UserManagement() {
             pointerEvents: "none",
           }}
         >
-          User Name
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 15,
-            left: 261,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        >
           Full Name
         </div>
         <div
           style={{
             position: "absolute",
             top: 15,
-            left: 492,
+            left: 330,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
@@ -223,13 +244,13 @@ export default function UserManagement() {
             pointerEvents: "none",
           }}
         >
-          ID
+          Email
         </div>
         <div
           style={{
             position: "absolute",
             top: 15,
-            left: 723,
+            left: 630,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
@@ -278,79 +299,76 @@ export default function UserManagement() {
             overflowY: "auto",
           }}
         >
-          {users.map((row, i) => (
-            <div
-              key={"course-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 30,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.username}
-            </div>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {Array.isArray(apiUsers) && apiUsers.map((row: any, i: number) => (
+            <React.Fragment key={row.userID || row.studentID || i}>
+              {/* Full Name */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 57 * i,
+                  height: 57,
+                  display: 'flex',
+                  alignItems: 'center',
+                  left: 30,
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              >
+                {row.FullName}
+              </div>
+              {/* Email */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 57 * i,
+                  height: 57,
+                  display: 'flex',
+                  alignItems: 'center',
+                  left: 330,
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              >
+                {row.email}
+              </div>
+              {/* Type (role) */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 57 * i,
+                  height: 57,
+                  display: 'flex',
+                  alignItems: 'center',
+                  left: 630,
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              >
+                {row.role === 'STUDENT'
+                  ? `Student (${row.studentID})`
+                  : row.role === 'INSTRUCTOR'
+                    ? 'Instructor'
+                    : row.role === 'INSTITUTION_REPRESENTATIVE'
+                      ? 'Institution Representative'
+                      : row.role}
+              </div>
+            </React.Fragment>
           ))}
-          {users.map((row, i) => (
-            <div
-              key={"period-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 261,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.fullName}
-            </div>
-          ))}
-          {users.map((row, i) => (
-            <div
-              key={"open-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 492,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.id}
-            </div>
-          ))}
-          {users.map((row, i) => (
-            <div
-              key={"type-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i + 57 / 2 - 18.5,
-                left: 723,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 25,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.type}
-            </div>
-          ))}
-          {users.map((row, i) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {Array.isArray(apiUsers) && apiUsers.map((row: any, i: number) => (
             <div
               key={"action-rect-" + i}
               style={{
@@ -365,6 +383,15 @@ export default function UserManagement() {
                 display: "flex",
                 alignItems: "center",
                 cursor: "pointer",
+              }}
+              onClick={() => {
+                let studentID = null;
+                if (row.role === 'STUDENT') {
+                  // Extract studentID from "Student (studentID)" format
+                  const match = row.studentID ? row.studentID.toString() : '';
+                  studentID = match;
+                }
+                router.push(`/change_password?email=${encodeURIComponent(row.email)}&studentID=${encodeURIComponent(studentID || '')}`);
               }}
             >
               <img
@@ -397,7 +424,8 @@ export default function UserManagement() {
               </div>
             </div>
           ))}
-          {users.map((row, i) => (
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          {Array.isArray(apiUsers) && apiUsers.map((row: any, i: number) => (
             <div
               key={"action-rect-2-" + i}
               style={{

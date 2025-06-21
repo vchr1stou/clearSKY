@@ -1,5 +1,6 @@
 const User = require('../models/user.js');
 const bcrypt = require('bcrypt');
+const messagingService = require('./messagingService.js');
 
 // Create a new user
 async function createUser(userData) {
@@ -42,7 +43,7 @@ async function changePassword(userData) {
         err.status = 404; // Not Found
         throw err;
     }
-    else if (user.studentID !== studentID) {
+    else if (user.studentID !== studentID && user.studentID !== null) {
         const err = new Error('Student ID does not match');
         err.status = 403; // Forbidden
         throw err;
@@ -52,10 +53,34 @@ async function changePassword(userData) {
         err.status = 401; // Unauthorized
         throw err;
     }
-    // Update user password
-    user.password = await bcrypt.hash(password, 10);
-    await user.save();
-    return user;
+    
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Update password in userManagementService database
+    await User.update(
+        { password: hashedPassword },
+        { where: { email: email } }
+    );
+    
+    // Send message to AuthService to update password in authdb
+    try {
+        await messagingService.sendPasswordUpdateMessage({
+            email: email,
+            password: hashedPassword
+        });
+    } catch (error) {
+        console.error('Failed to send password update message:', error);
+        // Don't throw error here, as the main database was updated successfully
+    }
+    
+    const updatedUser = await User.findOne({ where: { email: email } });
+    return updatedUser;
 }
 
-module.exports = {createUser, changePassword};
+// Fetch all users by institutionID
+async function getUsersByInstitution(institutionID) {
+    return await User.findAll({ where: { institutionID } });
+}
+
+module.exports = {createUser, changePassword, getUsersByInstitution};

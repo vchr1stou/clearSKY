@@ -12,6 +12,7 @@
   },
   "private": true,
   "dependencies": {
+    "amqplib": "^0.10.3",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
