@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS `User` (
     email varchar(45) NOT NULL UNIQUE,
     telephone varchar(45),
     password varchar(70) NOT NULL,
-    role ENUM('STUDENT', 'INSTRUCTOR','INSTITUTION_REPRESENTATIVE','ADMIN')) NOT NULL,
+    role ENUM('STUDENT', 'INSTRUCTOR','INSTITUTION_REPRESENTATIVE','ADMIN') NOT NULL,
     institutionID INT
     );
 
