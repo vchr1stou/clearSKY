@@ -39,20 +39,36 @@ class MessageConsumer {
                 if (msg !== null) {
                     try {
                         const message = JSON.parse(msg.content.toString());
-                        console.log('Received password update message for:', message.email);
+                        console.log('=== RECEIVED MESSAGE ===');
+                        console.log('Message content:', message);
+                        console.log('Message type:', message.type);
+                        console.log('=======================');
                         
-                        // Update password in authdb
-                        await User.update(
-                            { password: message.password },
-                            { where: { email: message.email } }
-                        );
-                        
-                        console.log('Password updated in authdb for:', message.email);
+                        if (message.type === 'user_removal') {
+                            // Handle user removal
+                            console.log('Processing user removal for:', message.email);
+                            
+                            const deletedCount = await User.destroy({ where: { email: message.email } });
+                            console.log('Deleted rows from authdb:', deletedCount);
+                            
+                            console.log('User removed from authdb for:', message.email);
+                        } else {
+                            // Handle password update (backward compatibility)
+                            console.log('Processing password update for:', message.email);
+                            
+                            await User.update(
+                                { password: message.password },
+                                { where: { email: message.email } }
+                            );
+                            
+                            console.log('Password updated in authdb for:', message.email);
+                        }
                         
                         // Acknowledge the message
                         this.channel.ack(msg);
+                        console.log('Message acknowledged');
                     } catch (error) {
-                        console.error('Error processing password update message:', error);
+                        console.error('Error processing message:', error);
                         // Reject the message and requeue it
                         this.channel.nack(msg, false, true);
                     }

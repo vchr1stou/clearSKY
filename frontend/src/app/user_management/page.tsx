@@ -7,13 +7,13 @@ export default function UserManagement() {
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [apiUsers, setApiUsers] = useState<any[] | null>(null);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ email: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        setApiError("No auth token found in localStorage");
         setApiUsers(null);
         return;
       }
@@ -25,33 +25,71 @@ export default function UserManagement() {
         });
         const data = await response.json();
         setApiUsers(data);
-        setApiError(null);
-      } catch (error) {
-        setApiError("Error fetching users by institution: " + (error instanceof Error ? error.message : String(error)));
+      } catch {
         setApiUsers(null);
       }
     };
     fetchUsers();
   }, []);
 
+  const handleDeleteUser = (email: string, name: string) => {
+    setUserToDelete({ email, name });
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("No auth token found");
+      return;
+    }
+
+    try {
+      // Get institutionID from JWT token
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const institutionID = payload.institutionID;
+
+      const response = await fetch("http://localhost:3001/api/userManagement/removeUser", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: userToDelete.email,
+          institutionID: institutionID,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh the user list
+        const updatedResponse = await fetch("http://localhost:3001/api/userManagement/usersByInstitution", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const updatedData = await updatedResponse.json();
+        setApiUsers(updatedData);
+        setShowDeleteConfirmation(false);
+        setUserToDelete(null);
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to delete user: ${errorData.message}`);
+      }
+    } catch (error) {
+      alert(`Error deleting user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const cancelDeleteUser = () => {
+    setShowDeleteConfirmation(false);
+    setUserToDelete(null);
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
-      {/* DEBUG: Show API response at the top of the page */}
-      {apiError && (
-        <div style={{ background: '#ffdddd', color: '#a00', padding: 10, marginBottom: 10, borderRadius: 8, maxWidth: 800, wordBreak: 'break-all', zIndex: 10000, position: 'relative' }}>
-          <strong>Error:</strong> {apiError}
-        </div>
-      )}
-      <div style={{ background: 'white', color: 'black', padding: 10, marginBottom: 10, borderRadius: 8, maxWidth: 800, wordBreak: 'break-all', zIndex: 10000, position: 'relative' }}>
-        <strong>API Response (First Entry):</strong>
-        <pre style={{ margin: 0, fontSize: 14 }}>
-          {apiUsers
-            ? Array.isArray(apiUsers)
-              ? JSON.stringify(apiUsers[0], null, 2)
-              : JSON.stringify(apiUsers, null, 2)
-            : 'Loading...'}
-        </pre>
-      </div>
       {/* Background image */}
       <Image
         src="/background_home.png"
@@ -441,6 +479,7 @@ export default function UserManagement() {
                 alignItems: "center",
                 cursor: "pointer",
               }}
+              onClick={() => handleDeleteUser(row.email, row.FullName)}
             >
               <img
                 src="/delete_user.svg"
@@ -490,6 +529,105 @@ export default function UserManagement() {
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirmation && userToDelete && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0, 0, 0, 0.5)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: 500,
+              height: 300,
+              borderRadius: 46,
+              background: "rgba(149,149,149,0.25)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "0.3px solid rgba(255, 255, 255, 0.77)",
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 40,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 24,
+                color: "#fff",
+                textAlign: "center",
+                marginBottom: 20,
+              }}
+            >
+              Confirm Delete User
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 400,
+                fontSize: 18,
+                color: "#fff",
+                textAlign: "center",
+                marginBottom: 40,
+              }}
+            >
+              Are you sure you want to delete <strong>{userToDelete.name}</strong> ({userToDelete.email})?
+            </div>
+            <div style={{ display: "flex", gap: 20 }}>
+              <button
+                onClick={cancelDeleteUser}
+                style={{
+                  width: 120,
+                  height: 40,
+                  borderRadius: 55,
+                  background: "rgba(255,255,255,0.2)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  fontFamily: "var(--font-roboto)",
+                  border: "none",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                style={{
+                  width: 120,
+                  height: 40,
+                  borderRadius: 55,
+                  background: "#ff4444",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  fontFamily: "var(--font-roboto)",
+                  border: "none",
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

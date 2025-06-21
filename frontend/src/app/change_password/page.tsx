@@ -241,14 +241,6 @@ export default function ChangePassword() {
         }}
       >
         <form style={{ width: '80%', margin: '0 auto', marginTop: 10 }} onSubmit={handleSubmit}>
-          {/* DEBUG: Show email, role, and institutionID */}
-          <div style={{ background: 'white', color: 'black', padding: 8, borderRadius: 8, marginBottom: 16, fontSize: 14 }}>
-            <strong>DEBUG:</strong><br />
-            email: {email}<br />
-            studentID: {studentID}<br />
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            institutionID: {(() => { const token = localStorage.getItem('authToken'); try { return token ? (jwtDecode(token) as any).institutionID : ''; } catch { return ''; } })()}
-          </div>
           {message ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">

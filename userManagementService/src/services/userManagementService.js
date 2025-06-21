@@ -83,4 +83,39 @@ async function getUsersByInstitution(institutionID) {
     return await User.findAll({ where: { institutionID } });
 }
 
-module.exports = {createUser, changePassword, getUsersByInstitution};
+// Remove user
+async function removeUser(userData) {
+    const { email, institutionID } = userData;
+    
+    // Find user by email
+    const user = await User.findOne({ where: { email: email } });
+
+    if (!user) {
+        const err = new Error('User not found');
+        err.status = 404; // Not Found
+        throw err;
+    }
+    
+    if (user.institutionID !== Number(institutionID)) {
+        const err = new Error('User does not belong to this institution');
+        err.status = 401; // Unauthorized
+        throw err;
+    }
+    
+    // Delete user from userManagementService database
+    await User.destroy({ where: { email: email } });
+    
+    // Send message to AuthService to remove from authdb
+    try {
+        await messagingService.sendUserRemovalMessage({
+            email: email
+        });
+    } catch (error) {
+        console.error('Failed to send user removal message:', error);
+        // Don't throw error here, as the main database was updated successfully
+    }
+    
+    return { message: 'User removed successfully' };
+}
+
+module.exports = {createUser, changePassword, getUsersByInstitution, removeUser};

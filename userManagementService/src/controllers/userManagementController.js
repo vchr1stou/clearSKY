@@ -1,4 +1,4 @@
-const {createUser, changePassword, getUsersByInstitution} = require('../services/userManagementService.js');
+const {createUser, changePassword, getUsersByInstitution, removeUser} = require('../services/userManagementService.js');
 
 
 async function register(req, res, next) {
@@ -50,4 +50,23 @@ async function getUsersForInstitution(req, res, next) {
     }
 }
 
-module.exports = {register, changePassw, getUsersForInstitution};
+async function removeUserController(req, res, next) {
+    const { email, institutionID } = req.body;
+    
+    if (!email || !institutionID) {
+        return res.status(400).json({ message: 'Invalid or missing required fields' });
+    }
+    
+    try {
+        const result = await removeUser(req.body);
+        res.status(200).json(result);
+    } catch (error) {
+        if (error.status === 401 || error.status === 404) {
+            return res.status(error.status).json({ message: error.message });
+        }
+        error.status = error.status || 400;
+        next(error);
+    }
+}
+
+module.exports = {register, changePassw, getUsersForInstitution, removeUserController};

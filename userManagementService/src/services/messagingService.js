@@ -53,6 +53,34 @@ class MessagingService {
         }
     }
 
+    async sendUserRemovalMessage(userData) {
+        try {
+            if (!this.channel) {
+                await this.connect();
+            }
+
+            const message = {
+                type: 'user_removal',
+                email: userData.email,
+                timestamp: new Date().toISOString()
+            };
+
+            // Send message to queue
+            await this.channel.sendToQueue(
+                this.queueName,
+                Buffer.from(JSON.stringify(message)),
+                {
+                    persistent: true // Message survives broker restart
+                }
+            );
+
+            console.log('User removal message sent to queue:', message.email);
+        } catch (error) {
+            console.error('Failed to send user removal message:', error);
+            throw error;
+        }
+    }
+
     async close() {
         if (this.channel) {
             await this.channel.close();

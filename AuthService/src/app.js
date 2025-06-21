@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
 app.use('/api/auth', authRoutes);
 
 // Error handling
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).json({ message: 'Internal Server Error' });
 });
