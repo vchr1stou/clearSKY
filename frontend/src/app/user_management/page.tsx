@@ -48,7 +48,7 @@ export default function UserManagement() {
         {/* Home and My Courses (left) */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div
-            onClick={() => router.push("/HomeScreen")}
+            onClick={() => router.push("/HomeScreen?role=Institution Manager")}
             style={{
               fontSize: 23,
               fontFamily: "var(--font-roboto)",
@@ -60,19 +60,7 @@ export default function UserManagement() {
             Home
           </div>
           <div
-            style={{
-              marginLeft: 18,
-              color: "#0092FA",
-              opacity: 0.7,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-            }}
-          >
-            My Courses
-          </div>
-          <div
-            onClick={() => router.push("/Statistics")}
+            onClick={() => router.push("/institutions")}
             style={{
               marginLeft: 18,
               fontSize: 23,
@@ -82,7 +70,19 @@ export default function UserManagement() {
             }}
             className="text-white transition-colors duration-200 hover:text-gray-300"
           >
-            Statistics
+            Institutions
+          </div>
+          <div
+            style={{
+              marginLeft: 18,
+              color: "#0092FA",
+              opacity: 0.7,
+              fontSize: 23,
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+            }}
+          >
+            User Management
           </div>
         </div>
         {/* Sign Out button (rightmost) */}
@@ -119,6 +119,7 @@ export default function UserManagement() {
       </div>
       {/* Rectangle centered 15px below the bottom of clearsky.svg */}
       <div
+        onClick={() => router.push("/add_user")}
         style={{
           position: "absolute",
           top: 30 + 60 + 40 + 131 + 15, // nav top + nav height + spacing + clearsky height + 15px
@@ -137,6 +138,7 @@ export default function UserManagement() {
           alignItems: "center",
           justifyContent: "flex-start", // align content to the left
           paddingLeft: 47, // add padding for the icon
+          cursor: "pointer",
         }}
       >
         <img
@@ -197,7 +199,7 @@ export default function UserManagement() {
           style={{
             position: "absolute",
             top: 15,
-            left: 270.67,
+            left: 261,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
@@ -212,7 +214,7 @@ export default function UserManagement() {
           style={{
             position: "absolute",
             top: 15,
-            left: 511.33,
+            left: 492,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
@@ -227,7 +229,7 @@ export default function UserManagement() {
           style={{
             position: "absolute",
             top: 15,
-            left: 641.67,
+            left: 723,
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
@@ -300,7 +302,7 @@ export default function UserManagement() {
               style={{
                 position: "absolute",
                 top: 57 * i + 57 / 2 - 18.5,
-                left: 270.67,
+                left: 261,
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
                 fontSize: 25,
@@ -318,7 +320,7 @@ export default function UserManagement() {
               style={{
                 position: "absolute",
                 top: 57 * i + 57 / 2 - 18.5,
-                left: 511.33,
+                left: 492,
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
                 fontSize: 25,
@@ -336,7 +338,7 @@ export default function UserManagement() {
               style={{
                 position: "absolute",
                 top: 57 * i + 57 / 2 - 18.5,
-                left: 641.67,
+                left: 723,
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
                 fontSize: 25,

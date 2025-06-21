@@ -250,7 +250,7 @@ export default function HomeScreen() {
               transition: "transform 0.2s ease",
             }}
             className="hover:scale-105"
-            onClick={() => {}}
+            onClick={() => router.push('/institutions')}
           >
             {/* Overlay: Book icon and Institutions text for Institution Manager only */}
             <div style={{ marginTop: 46, display: "flex", justifyContent: "center", width: "100%" }}>
