@@ -765,25 +765,35 @@ app.get('/api/requests/instructor/:instructorId', verifyToken, async (req, res) 
 
 // Create a new request
 app.post('/api/requests', verifyToken, async (req, res) => {
-  const { courseID, studentID, instructorID, request_message } = req.body;
+  const { courseID, studentID, instructorID, request_message, course_name, exam_period, FullName } = req.body;
 
+  // Validate all required fields
   if (!courseID || !studentID || !instructorID) {
     return res.status(400).json({
       success: false,
       error: 'courseID, studentID, and instructorID are required'
     });
   }
+  if (!course_name || !exam_period || !FullName) {
+    return res.status(400).json({
+      success: false,
+      error: 'course_name, exam_period, and FullName are required in the request body'
+    });
+  }
 
   try {
     const [result] = await db.query(`
-      INSERT INTO requests (courseID, studentID, instructorID, request_message)
-      VALUES (?, ?, ?, ?)
-    `, [courseID, studentID, instructorID, request_message]);
+      INSERT INTO requests (courseID, studentID, instructorID, request_message, course_name, exam_period, FullName)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [courseID, studentID, instructorID, request_message, course_name, exam_period, FullName]);
 
     res.status(201).json({
       success: true,
       message: 'Request created successfully',
-      request_id: result.insertId
+      request_id: result.insertId,
+      course_name,
+      exam_period,
+      FullName
     });
   } catch (err) {
     console.error('Error creating request:', err);
@@ -804,7 +814,7 @@ app.put('/api/requests/:requestId', verifyToken, async (req, res) => {
     const [result] = await db.query(`
       UPDATE requests 
       SET respond_message = ?, review_status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE request_id = ?
+      WHERE requestID = ?
     `, [respond_message, review_status, requestId]);
 
     if (result.affectedRows === 0) {

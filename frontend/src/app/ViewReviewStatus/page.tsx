@@ -8,6 +8,19 @@ export default function ViewReviewStatus() {
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
   const period = searchParams.get("period") || "Exam Period";
+  const respond_message = searchParams.get("respond_message") || "";
+  const review_status = searchParams.get("review_status") || "";
+
+  // Determine color and label for status
+  let statusColor = "rgba(255,255,255,0.18)";
+  let statusLabel = "";
+  if (review_status === "pending") {
+    statusColor = "rgba(39, 174, 96, 0.35)"; // greenish
+    statusLabel = "- Accepted";
+  } else if (review_status === "finished") {
+    statusColor = "rgba(231, 76, 60, 0.35)"; // reddish
+    statusLabel = "- Rejected";
+  }
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
@@ -144,8 +157,11 @@ export default function ViewReviewStatus() {
             width: 1290,
             height: 53,
             borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
+            background: statusColor,
             zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
           }}
         >
           <img
@@ -159,18 +175,16 @@ export default function ViewReviewStatus() {
           {/* Course and Exam Period text - match ViewMyGrade */}
           <div
             style={{
-              position: "absolute",
-              left: 20 + 26 + 20, // 20px from left, 26px icon, 20px gap
-              top: "50%",
-              transform: "translateY(-50%)",
+              marginLeft: 20 + 26 + 20, // 20px from left, 26px icon, 20px gap
+              marginTop: 8,
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
               fontSize: 25,
-              color: "#fff",
+              color: "#fff", // Always white
               whiteSpace: "nowrap",
             }}
           >
-            Review Request Status - {course} ({period})
+            Review Request Status - {course} ({period}) {statusLabel}
           </div>
         </div>
         {/* New rectangle for review request content */}
@@ -181,69 +195,26 @@ export default function ViewReviewStatus() {
             left: '50%',
             transform: 'translateX(-50%)',
             width: 1285,
-            height: 229,
+            height: 300,
             borderRadius: 42,
             background: "rgba(255,255,255,0.18)",
             zIndex: 2,
-          }}
-        />
-        {/* Acknowledge button rectangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 29.5 + 229 + 25, // top of big rect + header + gap + content height + 25px
-            left: 24 + 1030, // left edge of big rect + 1030px
-            width: 255,
-            height: 45,
-            borderRadius: 38,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            alignItems: 'flex-start',
           }}
         >
-          <span
-            style={{
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
-              width: '100%',
-              textAlign: 'center',
-            }}
-          >
-            Acknowledge
-          </span>
-        </div>
-        {/* Download Attachment button rectangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 29.5 + 229 + 25,
-            left: 24 + 1030 - 340,
-            width: 311,
-            height: 49,
-            borderRadius: 38,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
-              width: '100%',
-              textAlign: 'center',
-            }}
-          >
-            Download Attachment
-          </span>
+          <div style={{
+            color: '#fff',
+            fontFamily: 'var(--font-roboto)',
+            fontWeight: 600,
+            fontSize: 22,
+            width: '90%',
+            textAlign: 'left',
+            wordBreak: 'break-word',
+            whiteSpace: 'pre-wrap',
+            marginTop: 18,
+            marginLeft: 32,
+          }}>{respond_message || 'No response yet.'}</div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
@@ -11,20 +11,11 @@ export default function AskForReview() {
   const period = searchParams.get("period") || "Exam Period";
   const courseID = searchParams.get("courseID") || "N/A";
   const instructorID = searchParams.get("instructorID") || "N/A";
+  const fullName = searchParams.get("fullName") || "";
   const [requestMessage, setRequestMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // Debug output when component mounts
-  useEffect(() => {
-    console.log("🔍 AskForReview Debug Info:");
-    console.log("Course Name:", course);
-    console.log("Exam Period:", period);
-    console.log("Course ID:", courseID);
-    console.log("Instructor ID:", instructorID);
-    console.log("Full URL params:", Object.fromEntries(searchParams.entries()));
-  }, [course, period, courseID, instructorID, searchParams]);
 
   const handleSubmitRequest = async () => {
     if (!requestMessage.trim()) {
@@ -66,6 +57,9 @@ export default function AskForReview() {
           studentID: studentID,
           instructorID: parseInt(instructorID),
           request_message: requestMessage.trim(),
+          course_name: course,
+          exam_period: period,
+          FullName: fullName
         }),
       });
 
@@ -247,7 +241,7 @@ export default function AskForReview() {
               whiteSpace: "nowrap",
             }}
           >
-            New Review Request - {course} ({period})
+            New Review Request - {course} ({period}) {fullName && `- ${fullName}`}
           </div>
         </div>
 

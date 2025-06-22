@@ -12,20 +12,42 @@ type Course = {
   instructorID: number;
 };
 
+type ReviewRequest = {
+  requestID: number;
+  courseID: number;
+  studentID: number;
+  instructorID: number;
+  request_message: string;
+  respond_message: string | null;
+  course_name: string;
+  exam_period: string;
+  FullName: string;
+  review_status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export default function MyCourses() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [fullName, setFullName] = useState<string>("");
+  const [reviewRequests, setReviewRequests] = useState<ReviewRequest[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) return;
     let role: string | undefined = undefined;
+    let decodedFullName: string | undefined = undefined;
+    let studentID: number | undefined = undefined;
     try {
-      const decoded = jwtDecode<{ role?: string }>(token);
+      const decoded = jwtDecode<{ role?: string; FullName?: string; studentID?: number; student_id?: number }>(token);
       role = decoded.role;
+      decodedFullName = decoded.FullName;
+      studentID = decoded.studentID || decoded.student_id;
     } catch {
       return;
     }
+    if (decodedFullName) setFullName(decodedFullName);
     if (role === "STUDENT") {
       fetch("http://localhost:3002/api/courses/myCourses", {
         method: "GET",
@@ -37,9 +59,21 @@ export default function MyCourses() {
           const data = await res.json();
           if (Array.isArray(data)) setCourses(data);
         })
-        .catch((err: Error) => {
-          console.error("Error fetching courses:", err.message);
-        });
+        .catch(() => {});
+      // Fetch review requests for this student
+      if (studentID) {
+        fetch(`http://localhost:3003/api/requests/student/${studentID}`, {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) setReviewRequests(data.data);
+          })
+          .catch(() => {});
+      }
     }
   }, []);
   
@@ -258,6 +292,12 @@ export default function MyCourses() {
               // Normalize grading_status for display and logic
               const statusRaw = row.grading_status || '';
               const status = statusRaw.trim().toLowerCase() === 'closed' ? 'Closed' : 'Open';
+              // Find review request for this course/period
+              const reviewReq = reviewRequests.find(
+                (r) => r.course_name === row.course_name && r.exam_period === row.exam_period
+              );
+              const reviewStatus = reviewReq ? reviewReq.review_status : null;
+              const isReviewStatusDisabled = !reviewStatus || reviewStatus === 'none';
               return (
                 <React.Fragment key={row.course_name + row.exam_period}>
                   <div
@@ -345,7 +385,19 @@ export default function MyCourses() {
                   {/* Actions column: Ask For Review */}
                   <div
                     key={"action-rect-2-" + i}
-                    onClick={status === 'Closed' ? undefined : () => router.push(`/AskForReview?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}&courseID=${row.courseID}&instructorID=${row.instructorID}`)}
+                    onClick={status === 'Closed' ? undefined : () => {
+                      let nameToPass = fullName;
+                      if (!nameToPass) {
+                        try {
+                          const token = localStorage.getItem("authToken");
+                          if (token) {
+                            const decoded = jwtDecode<{ FullName?: string }>(token);
+                            nameToPass = decoded.FullName || "";
+                          }
+                        } catch {}
+                      }
+                      router.push(`/AskForReview?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}&courseID=${row.courseID}&instructorID=${row.instructorID}&fullName=${encodeURIComponent(nameToPass)}`)
+                    }}
                     style={{
                       position: "absolute",
                       top: 57 * i + 57 / 2 - 13.5,
@@ -383,7 +435,7 @@ export default function MyCourses() {
                   {/* Actions column: View Review Status */}
                   <div
                     key={"action-rect-3-" + i}
-                    onClick={() => router.push(`/ViewReviewStatus?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}`)}
+                    onClick={isReviewStatusDisabled ? undefined : () => router.push(`/ViewReviewStatus?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}&respond_message=${encodeURIComponent(reviewReq?.respond_message || "")}&review_status=${encodeURIComponent(reviewReq?.review_status || "")}`)}
                     style={{
                       position: "absolute",
                       top: 57 * i + 57 / 2 - 13.5,
@@ -391,15 +443,16 @@ export default function MyCourses() {
                       width: 192,
                       height: 33,
                       borderRadius: 100,
-                      background: "rgba(255,255,255,0.18)",
+                      background: isReviewStatusDisabled ? "rgba(200,200,200,0.35)" : "rgba(255,255,255,0.18)",
                       zIndex: 3,
                       display: "flex",
                       alignItems: "center",
-                      cursor: "pointer",
+                      cursor: isReviewStatusDisabled ? "not-allowed" : "pointer",
+                      opacity: isReviewStatusDisabled ? 0.5 : 1,
                     }}
                   >
                     <div style={{ position: "absolute", left: 16.5, top: "50%", transform: "translateY(-50%)" }}>
-                      <img src="/view_review_status.svg" alt="View Review Status" width={15} height={18} style={{ width: 15, height: 18, display: "block" }} />
+                      <img src="/view_review_status.svg" alt="View Review Status" width={15} height={18} style={{ width: 15, height: 18, display: "block", filter: isReviewStatusDisabled ? 'grayscale(1)' : 'none' }} />
                     </div>
                     <div
                       style={{

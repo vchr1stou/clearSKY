@@ -10,6 +10,9 @@ export default function ReplyToReviewRequest() {
   const course = searchParams.get("course") || "Course";
   const period = searchParams.get("period") || "Exam Period";
   const student = searchParams.get("student") || "Student Name";
+  const requestID = searchParams.get("requestID");
+  const request_message = searchParams.get("request_message") || "";
+  console.log("[DEBUG] requestID:", requestID);
 
   const [selectorOpen, setSelectorOpen] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
@@ -17,6 +20,9 @@ export default function ReplyToReviewRequest() {
   const selectActionRef = useRef<HTMLDivElement>(null);
   const [replyText, setReplyText] = useState("");
   const [replyFocused, setReplyFocused] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   // Open selector and calculate position
   const handleSelectActionClick = () => {
@@ -53,6 +59,45 @@ export default function ReplyToReviewRequest() {
     };
   }, [selectorOpen]);
 
+  const handleReply = async () => {
+    setError(null);
+    if (!selectedAction || !replyText.trim()) {
+      setError("Please select an action and enter a reply.");
+      return;
+    }
+    if (!requestID) {
+      setError("No request ID found.");
+      return;
+    }
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("No auth token found.");
+      return;
+    }
+    const review_status = selectedAction === "Accept" ? "pending" : "finished";
+    try {
+      const res = await fetch(`http://localhost:3003/api/requests/${requestID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          respond_message: replyText,
+          review_status,
+        }),
+      });
+      if (res.ok) {
+        setSuccess(true);
+      } else {
+        const data = await res.json();
+        setError(data.message || "Failed to reply to review request.");
+      }
+    } catch {
+      setError("Failed to reply to review request.");
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
       {/* Background image */}
@@ -68,8 +113,10 @@ export default function ReplyToReviewRequest() {
         style={{
           position: "absolute",
           top: 30,
-          left: 50,
-          width: 1340,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "95vw",
+          maxWidth: 1340,
           height: 60,
           borderRadius: 100,
           background: "rgba(128,128,128,0.3)",
@@ -226,166 +273,217 @@ export default function ReplyToReviewRequest() {
             {`Reply To Review Request - ${course} (${period}) - ${student}`}
           </div>
         </div>
-        {/* New rectangle 11.5px below the inner white rectangle, 30px from the left edge of the big rectangle */}
-        <div
-          ref={selectActionRef}
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 11.5,
-            left: 25,
-            width: 200,
-            height: 46,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={handleSelectActionClick}
-        >
-          {selectedAction ? (
-            <span
-              style={{
-                width: '100%',
-                textAlign: 'center',
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 22,
-                color: "#fff",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {selectedAction}
-            </span>
-          ) : (
-            <span
-              style={{
-                marginLeft: 25,
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 22,
-                color: "#fff",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              Select Action
-              <span style={{ marginLeft: 1, marginTop: 1, display: "flex", alignItems: "center" }}>
-                <svg width="24" height="24" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-            </span>
-          )}
-        </div>
-        {/* New rectangle 12px below the Select Action rectangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 11.5 + 46 + 12,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 1285,
-            height: 193,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-          onClick={() => {
-            setReplyFocused(true);
-            document.getElementById("reply-textarea")?.focus();
-          }}
-        >
-          <textarea
-            id="reply-textarea"
-            value={replyText}
-            onChange={e => setReplyText(e.target.value)}
-            onFocus={() => setReplyFocused(true)}
-            onBlur={() => setReplyFocused(false)}
-            style={{
-              width: "97%",
-              height: "90%",
-              resize: "none",
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              color: "#fff",
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 25,
-              textAlign: "left",
-              zIndex: 2,
-              padding: "0 0 0 14px",
-              margin: 0,
-              overflowY: "auto",
-            }}
-          />
-          {(!replyText && !replyFocused) && (
-            <span
+        {/* Only show selector, textarea, and reply button if not success */}
+        {!success && (
+          <>
+            <div style={{
+              position: "absolute",
+              top: 24 + 53 + 11.5,
+              left: 25,
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 16,
+              zIndex: 3,
+            }}>
+              <div
+                ref={selectActionRef}
+                style={{
+                  width: 200,
+                  height: 46,
+                  borderRadius: 42,
+                  background: "rgba(255,255,255,0.18)",
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 22,
+                  color: "#fff",
+                }}
+                onClick={handleSelectActionClick}
+              >
+                {selectedAction ? (
+                  <span
+                    style={{
+                      width: '100%',
+                      textAlign: 'center',
+                      fontFamily: "var(--font-roboto)",
+                      fontWeight: 600,
+                      fontSize: 22,
+                      color: "#fff",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {selectedAction}
+                  </span>
+                ) : (
+                  <span
+                    style={{
+                      marginLeft: 25,
+                      fontFamily: "var(--font-roboto)",
+                      fontWeight: 600,
+                      fontSize: 22,
+                      color: "#fff",
+                      whiteSpace: "nowrap",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    Select Action
+                    <span style={{ marginLeft: 1, marginTop: 1, display: "flex", alignItems: "center" }}>
+                      <svg width="24" height="24" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  </span>
+                )}
+              </div>
+              <div
+                style={{
+                  width: 200,
+                  height: 46,
+                  borderRadius: 42,
+                  background: "rgba(255,255,255,0.18)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 22,
+                  color: "#fff",
+                }}
+                onClick={() => setShowMessageModal(true)}
+              >
+                See Message
+              </div>
+            </div>
+            <div
               style={{
                 position: "absolute",
-                left: 0,
-                top: 0,
-                width: "100%",
-                height: "100%",
+                top: 24 + 53 + 11.5 + 46 + 12,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 1285,
+                height: 193,
+                borderRadius: 42,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 3,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={() => {
+                setReplyFocused(true);
+                document.getElementById("reply-textarea")?.focus();
+              }}
+            >
+              <textarea
+                id="reply-textarea"
+                value={replyText}
+                onChange={e => setReplyText(e.target.value)}
+                onFocus={() => setReplyFocused(true)}
+                onBlur={() => setReplyFocused(false)}
+                style={{
+                  width: "97%",
+                  height: "90%",
+                  resize: "none",
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  color: "#fff",
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 25,
+                  textAlign: "left",
+                  zIndex: 2,
+                  padding: "0 0 0 14px",
+                  margin: 0,
+                  overflowY: "auto",
+                }}
+              />
+              {(!replyText && !replyFocused) && (
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "var(--font-roboto)",
+                    fontWeight: 600,
+                    fontSize: 25,
+                    color: "#fff",
+                    opacity: 0.7,
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                >
+                  Add your reply here
+                </span>
+              )}
+            </div>
+            <button
+              style={{
+                position: "absolute",
+                top: 24 + 53 + 11.5 + 46 + 12 + 193 + 25,
+                left: "calc(50% + 670px - 25px - 150px)",
+                width: 150,
+                height: 36,
+                borderRadius: 42,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 3,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
-                fontSize: 25,
+                fontSize: 20,
                 color: "#fff",
-                opacity: 0.7,
-                pointerEvents: "none",
-                zIndex: 1,
+                whiteSpace: "nowrap",
+                border: "none",
+                cursor: (!selectedAction || !replyText.trim()) ? "not-allowed" : "pointer",
+                opacity: (!selectedAction || !replyText.trim()) ? 0.5 : 1,
               }}
+              onClick={handleReply}
+              disabled={!selectedAction || !replyText.trim()}
             >
-              Add your reply here
-            </span>
-          )}
-        </div>
-        {/* New rectangle 350x49, 25px below the 1285x193 rectangle, right-aligned with 25px from the right edge of the big rectangle */}
-        {/* Calculate top: 24 + 53 + 11.5 + 46 + 12 + 193 + 25 */}
-        {/* Calculate left: big rectangle left + big rectangle width - 25 - 350 */}
-        {/* Big rectangle: left: 50%, width: 1340, transform: translateX(-50%) */}
-        {/* So left = calc(50% + 670px - 25px - 350px) = calc(50% + 295px) */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 11.5 + 46 + 12 + 193 + 25,
-            left: `calc(50% + 295px)`,
-            width: 350,
-            height: 49,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <span
-            style={{
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 25,
-              color: "#fff",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-            }}
-          >
-            Upload Reply Attachment
-          </span>
-        </div>
+              Reply
+            </button>
+            {error && (
+              <div style={{ color: '#f44', marginTop: 10, textAlign: 'center', fontWeight: 600 }}>{error}</div>
+            )}
+          </>
+        )}
+        {success && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'flex-start',
+            position: 'absolute',
+            top: 170,
+            left: 0,
+            width: '100%',
+            zIndex: 10,
+          }}>
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="32" cy="32" r="32" fill="#27ae60"/>
+              <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div style={{ color: '#27ae60', fontWeight: 700, fontSize: 20, marginTop: 18, textAlign: 'center' }}>
+              Reply review request was successful
+            </div>
+          </div>
+        )}
       </div>
       {/* Render selector dropdown at the end of the main return, above all rectangles */}
       {selectorOpen && selectorPosition && createPortal(
@@ -436,6 +534,74 @@ export default function ReplyToReviewRequest() {
           ))}
         </div>,
         document.body
+      )}
+      {showMessageModal && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.4)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }} onClick={() => setShowMessageModal(false)}>
+          <div style={{
+            background: 'rgba(128,128,128,0.3)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '0.3px solid rgba(255, 255, 255, 0.77)',
+            borderRadius: 32,
+            padding: '48px 64px 40px 64px',
+            minWidth: 700,
+            maxWidth: 900,
+            minHeight: 320,
+            boxShadow: '0 2px 24px rgba(0,0,0,0.22)',
+            color: '#fff',
+            fontFamily: 'var(--font-roboto)',
+            fontWeight: 600,
+            fontSize: 20,
+            textAlign: 'center',
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ marginBottom: 22, fontWeight: 700, fontSize: 26, color: '#0092FA', letterSpacing: 0.5 }}>
+              Review Request Message
+            </div>
+            <div style={{
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontSize: 22,
+              color: '#fff',
+              marginBottom: 0,
+              textAlign: 'left',
+              maxWidth: 800,
+              width: '100%',
+              flex: 1,
+            }}>{request_message}</div>
+            <div style={{ height: 40 }} />
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
+              <button style={{
+                background: '#0092FA',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 18,
+                padding: '12px 48px',
+                fontWeight: 700,
+                fontSize: 18,
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                letterSpacing: 0.2,
+              }} onClick={() => setShowMessageModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>, document.body
       )}
     </div>
   );

@@ -29,6 +29,9 @@ CREATE TABLE IF NOT EXISTS requests (
   instructorID INT NOT NULL,
   request_message VARCHAR(1024),
   respond_message VARCHAR(1024),
+  course_name VARCHAR(255),
+  exam_period VARCHAR(50),
+  FullName VARCHAR(255),
   review_status ENUM('pending', 'finished', 'none') NOT NULL DEFAULT 'none',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
