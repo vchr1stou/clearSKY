@@ -14,6 +14,15 @@ async function getCourses(req, res) {
         if (!courses) {
             return res.status(200).json({ message: 'No courses available' });
         }
+        
+        // Debug logging
+        console.log('🎯 Controller response for studentId:', user.studentID);
+        console.log('📦 Response data type:', typeof courses);
+        console.log('📦 Response data length:', Array.isArray(courses) ? courses.length : 'not an array');
+        if (Array.isArray(courses) && courses.length > 0) {
+            console.log('📦 First course in response:', JSON.stringify(courses[0], null, 2));
+        }
+        
         res.status(200).json(courses);
     } catch (error) {
         console.error('Error fetching courses:', error);

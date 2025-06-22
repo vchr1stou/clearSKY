@@ -5,11 +5,11 @@ DROP TABLE IF EXISTS grades;
 DROP TABLE IF EXISTS courses;
 
 CREATE TABLE courses (
-    course_id INT NOT NULL,
-    instructor_id INT,
+    courseID INT NOT NULL,
+    instructorID INT,
     `name` VARCHAR(20) NOT NULL,
-    institution_id INT NOT NULL,
-    PRIMARY KEY (institution_id, course_id)
+    institutionID INT NOT NULL,
+    PRIMARY KEY (institutionID, courseID)
     );
 
 

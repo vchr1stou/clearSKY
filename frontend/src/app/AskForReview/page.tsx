@@ -1,13 +1,90 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { jwtDecode } from "jwt-decode";
 
 export default function AskForReview() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
   const period = searchParams.get("period") || "Exam Period";
+  const courseID = searchParams.get("courseID") || "N/A";
+  const instructorID = searchParams.get("instructorID") || "N/A";
+  const [requestMessage, setRequestMessage] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Debug output when component mounts
+  useEffect(() => {
+    console.log("🔍 AskForReview Debug Info:");
+    console.log("Course Name:", course);
+    console.log("Exam Period:", period);
+    console.log("Course ID:", courseID);
+    console.log("Instructor ID:", instructorID);
+    console.log("Full URL params:", Object.fromEntries(searchParams.entries()));
+  }, [course, period, courseID, instructorID, searchParams]);
+
+  const handleSubmitRequest = async () => {
+    if (!requestMessage.trim()) {
+      setError("Please enter a review request message");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
+
+      // Extract studentID from JWT token
+      const decoded = jwtDecode<{ studentID?: number; student_id?: number }>(token);
+      const studentID = decoded.studentID || decoded.student_id;
+      
+      if (!studentID) {
+        throw new Error("Student ID not found in token");
+      }
+
+      console.log("📤 Submitting Review Request:");
+      console.log("Course ID:", courseID);
+      console.log("Instructor ID:", instructorID);
+      console.log("Student ID:", studentID);
+      console.log("Request Message:", requestMessage);
+
+      const response = await fetch("http://localhost:3003/api/requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          courseID: parseInt(courseID),
+          studentID: studentID,
+          instructorID: parseInt(instructorID),
+          request_message: requestMessage.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "Failed to submit review request");
+      }
+
+      console.log("✅ Review request submitted successfully:", data);
+      setIsSubmitted(true);
+
+    } catch (err) {
+      console.error("❌ Error submitting review request:", err);
+      setError(err instanceof Error ? err.message : "Failed to submit review request");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
@@ -121,7 +198,7 @@ export default function AskForReview() {
       <div
         style={{
           position: "absolute",
-          top: 30 + 60 + 40 + 131 + 40, // nav top + nav height + spacing + clearsky height + 40px
+          top: 30 + 60 + 40 + 131 + 40, // nav top + nav height + spacing + clearsky height + 40px margin
           left: "50%",
           transform: "translateX(-50%)",
           width: 1340,
@@ -173,59 +250,140 @@ export default function AskForReview() {
             New Review Request - {course} ({period})
           </div>
         </div>
-        {/* New rectangle for review request content as a textarea */}
-        <textarea
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 29.5, // 25 (header top) + 53 (header height) + 29.5
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: 1285,
-            height: 229,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
-            color: '#fff',
-            fontFamily: 'var(--font-roboto)',
-            fontSize: 22,
-            fontWeight: 400,
-            padding: 32,
-            outline: 'none',
-            border: 'none',
-            resize: 'none',
-            boxSizing: 'border-box',
-          }}
-          placeholder="Write your review request here..."
-        />
-        {/* Submit Request button rectangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 29.5 + 229 + 25, // top of big rect + header + gap + content height + 25px
-            left: 24 + 1030, // left edge of big rect + 1060px
-            width: 255,
-            height: 45,
-            borderRadius: 38,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <span
+
+        {/* Error Message */}
+        {error && (
+          <div
             style={{
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
-              width: '100%',
-              textAlign: 'center',
+              position: "absolute",
+              top: 25 + 53 + 10,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 1285,
+              borderRadius: 20,
+              background: "rgba(255,0,0,0.2)",
+              border: "1px solid rgba(255,0,0,0.5)",
+              padding: "15px",
+              zIndex: 2,
             }}
           >
-            Submit Request
-          </span>
-        </div>
+            <div style={{ color: "#fff", fontFamily: "var(--font-roboto)", fontSize: 18, textAlign: "center" }}>
+              ❌ {error}
+            </div>
+          </div>
+        )}
+
+        {/* Success State */}
+        {isSubmitted ? (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 10,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "none",
+              width: 400,
+              minHeight: 300,
+            }}
+          >
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: "50%",
+                background: "#27ae60",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 24,
+              }}
+            >
+              <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="32" fill="#27ae60"/>
+                <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div
+              style={{
+                color: '#27ae60',
+                fontWeight: 700,
+                fontSize: 22,
+                marginTop: 8,
+                textAlign: 'center',
+                fontFamily: 'var(--font-roboto)',
+              }}
+            >
+              Review request was sent successfully
+            </div>
+          </div>
+        ) : (
+          /* Review request textarea */
+          <textarea
+            value={requestMessage}
+            onChange={(e) => setRequestMessage(e.target.value)}
+            style={{
+              position: "absolute",
+              top: 25 + 53 + 29.5 + (error ? 60 : 0), // Adjust position if error is shown
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 1285,
+              height: 229,
+              borderRadius: 42,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 2,
+              color: '#fff',
+              fontFamily: 'var(--font-roboto)',
+              fontSize: 22,
+              fontWeight: 400,
+              padding: 32,
+              outline: 'none',
+              border: 'none',
+              resize: 'none',
+              boxSizing: 'border-box',
+            }}
+            placeholder="Write your review request here..."
+          />
+        )}
+
+        {/* Submit Request button rectangle */}
+        {!isSubmitted && (
+          <div
+            onClick={isLoading ? undefined : handleSubmitRequest}
+            style={{
+              position: "absolute",
+              top: 25 + 53 + 29.5 + 229 + 25 + (error ? 60 : 0), // Adjust position if error is shown
+              left: 24 + 1030, // left edge of big rect + 1060px
+              width: 255,
+              height: 45,
+              borderRadius: 38,
+              background: isLoading ? "rgba(200,200,200,0.35)" : "rgba(255,255,255,0.18)",
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 20,
+                color: "#fff",
+                width: '100%',
+                textAlign: 'center',
+              }}
+            >
+              {isLoading ? "Submitting..." : "Submit Request"}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

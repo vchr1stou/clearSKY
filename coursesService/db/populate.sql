@@ -1,6 +1,6 @@
 use coursesdb;
 
-INSERT INTO courses (course_id, instructor_id, name, institution_id) VALUES
+INSERT INTO courses (courseID, instructorID, name, institutionID) VALUES
 (3205, 1, 'Software Engineering', 1),
 (102, 2, 'Algorithms', 1),
 (201, 3, 'Computer Vision', 2);

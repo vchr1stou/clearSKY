@@ -8,6 +8,8 @@ type Course = {
   course_name: string;
   exam_period: string;
   grading_status: string;
+  courseID: number;
+  instructorID: number;
 };
 
 export default function MyCourses() {
@@ -343,7 +345,7 @@ export default function MyCourses() {
                   {/* Actions column: Ask For Review */}
                   <div
                     key={"action-rect-2-" + i}
-                    onClick={status === 'Closed' ? undefined : () => router.push(`/AskForReview?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}`)}
+                    onClick={status === 'Closed' ? undefined : () => router.push(`/AskForReview?course=${encodeURIComponent(row.course_name)}&period=${encodeURIComponent(row.exam_period)}&courseID=${row.courseID}&instructorID=${row.instructorID}`)}
                     style={{
                       position: "absolute",
                       top: 57 * i + 57 / 2 - 13.5,
