@@ -1,11 +1,11 @@
 use coursesdb;
 
 INSERT INTO courses (course_id, instructor_id, name, institution_id) VALUES
-(101, 1, 'Databases', 1),
+(3205, 1, 'Software Engineering', 1),
 (102, 2, 'Algorithms', 1),
 (201, 3, 'Computer Vision', 2);
 
-INSERT INTO grades (course_id, student_id, question_grades, exam_period, grading_status, total_grade, institution_id) VALUES
+INSERT INTO grades (courseID, studentID, question_grades, exam_period, grading_status, total_grade, institutionID) VALUES
 -- Course 101 (Databases), Institution 1
 (101, 1001, '{"q1": 5, "q2": 4.5, "q3": 3.5}', 'Spring 2025 ', 'Closed', 13.0, 1),
 (101, 1002, '{"q1": 4, "q2": 3.5, "q3": 4}', 'Spring 2025 ', 'Closed', 11.5, 1),

@@ -6,11 +6,12 @@ async function getMyCourses(studentId) {
             g.grading_status, 
             g.exam_period, 
             g.total_grade,
+            g.question_grades,
             c.name AS course_name
         FROM grades g
         JOIN courses c
-            ON g.course_id = c.course_id AND g.institution_id = c.institution_id
-        WHERE g.student_id = :studentId
+            ON g.courseID = c.course_id AND g.institutionID = c.institution_id
+        WHERE g.studentID = :studentId
     `;
 
     try {

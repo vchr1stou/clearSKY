@@ -14,15 +14,17 @@ CREATE TABLE courses (
 
 
 CREATE TABLE grades (
-    grade_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT,
-    student_id INT,
+    gradeID INT AUTO_INCREMENT PRIMARY KEY,
+    courseID INT NOT NULL,
+    studentID INT NOT NULL,
     question_grades JSON,
-    exam_period varchar(50),
-    grading_status enum('open', 'closed'),
+    exam_period VARCHAR(50),
+    grading_status ENUM('open', 'closed'),
     total_grade DECIMAL(5,2),
-    institution_id INT NOT NULL,
-    FOREIGN KEY (institution_id, course_id) REFERENCES courses(institution_id, course_id) ON DELETE CASCADE
+    institutionID INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_grade (studentID, courseID, exam_period)
     );
 
 USE coursesdb;

@@ -4,20 +4,16 @@ const sequelize = require('../config/db');
 class Grade extends Model {}
 
 Grade.init({
-    grade_id: {
+    gradeID: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
-    course_ref_id: {
+    courseID: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    course_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    student_id: {
+    studentID: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
@@ -33,15 +29,23 @@ Grade.init({
     total_grade: {
         type: DataTypes.DECIMAL(5, 2),
     },
-    institution_id: {
+    institutionID: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
+    },
+    created_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
     },
 }, {
     sequelize,
     modelName: 'Grade',
     tableName: 'grades',
-    timestamps: false,
+    timestamps: false, // We handle timestamps manually
 });
 
 module.exports = Grade;

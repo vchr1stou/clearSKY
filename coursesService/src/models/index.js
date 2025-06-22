@@ -13,7 +13,8 @@ async function initDB() {
     }
 }
 
-Course.hasMany(Grade, { as: 'Grades' });
-Grade.belongsTo(Course, { as: 'Course' });
+// Remove associations to prevent automatic foreign key columns
+// Course.hasMany(Grade, { as: 'Grades' });
+// Grade.belongsTo(Course, { as: 'Course' });
 
 module.exports = {Grade, Course, initDB};

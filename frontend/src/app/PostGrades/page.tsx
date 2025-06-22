@@ -13,7 +13,32 @@ export default function PostGrades() {
   const selectPhaseRef = useRef<HTMLDivElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [numGrades, setNumGrades] = useState("");
+
+  // New state for file upload and API response
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [apiResponse, setApiResponse] = useState<{
+    course_name?: string;
+    course_id?: string;
+    exam_period?: string;
+    grade_count?: number;
+    temp_file?: string;
+    parse_range?: number;
+    format?: {
+      isDetailed: boolean;
+      hasWeights: boolean;
+      questionCount: number;
+      questionColumns: string[];
+      weightColumns: string[];
+    };
+    validation?: {
+      columns: string[];
+      extraColumns: string[];
+      totalRows: number;
+      isValid: boolean;
+    };
+  } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Open selector and calculate position
   const handleSelectPhaseClick = () => {
@@ -50,6 +75,99 @@ export default function PostGrades() {
     };
   }, [selectorOpen]);
 
+  // Handle file upload to API
+  const uploadFileToAPI = async (file: File) => {
+    try {
+      setUploadStatus('uploading');
+      setErrorMessage('');
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('http://localhost:3003/api/grades/upload/preview', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setApiResponse(result.data);
+        setUploadStatus('success');
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Upload failed');
+      setApiResponse(null);
+    }
+  };
+
+  // Handle submit grades
+  const handleSubmitGrades = async () => {
+    try {
+      if (!apiResponse || !apiResponse.temp_file) {
+        setErrorMessage('No file has been uploaded successfully');
+        return;
+      }
+
+      if (!selectedPhase) {
+        setErrorMessage('Please select a grading phase');
+        return;
+      }
+
+      setSubmitStatus('submitting');
+      setErrorMessage('');
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('http://localhost:3003/api/grades/upload/confirm', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          temp_file: apiResponse.temp_file,
+          grading_status: selectedPhase
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSubmitStatus('success');
+        // Show success message
+        alert(`Grades submitted successfully! Processed ${result.data.processed_count} grades.`);
+        // Reset the form
+        setUploadStatus('idle');
+        setApiResponse(null);
+        setSelectedPhase(null);
+        setErrorMessage('');
+        setSubmitStatus('idle');
+      } else {
+        throw new Error(result.error || 'Submit failed');
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      setSubmitStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Submit failed');
+    }
+  };
+
   // Handle click to open file dialog
   const handleRectClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -61,18 +179,44 @@ export default function PostGrades() {
     e.stopPropagation();
     setDragActive(true);
   };
+  
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
   };
+  
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    // You can handle files here: e.dataTransfer.files
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+          file.name.endsWith('.xlsx')) {
+        uploadFileToAPI(file);
+      } else {
+        setErrorMessage('Please upload an XLSX file');
+        setUploadStatus('error');
+      }
+    }
   };
-  const handleFileChange = () => {};
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || 
+          file.name.endsWith('.xlsx')) {
+        uploadFileToAPI(file);
+      } else {
+        setErrorMessage('Please upload an XLSX file');
+        setUploadStatus('error');
+      }
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden" style={{ minHeight: "100vh", width: "100vw" }}>
@@ -269,9 +413,9 @@ export default function PostGrades() {
           backdropFilter: "blur(10px)",
           WebkitBackdropFilter: "blur(10px)",
           zIndex: 2,
-          cursor: "pointer",
+          cursor: uploadStatus === 'uploading' ? 'wait' : 'pointer',
         }}
-        onClick={handleRectClick}
+        onClick={uploadStatus !== 'uploading' ? handleRectClick : undefined}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -279,9 +423,95 @@ export default function PostGrades() {
         <input
           ref={fileInputRef}
           type="file"
+          accept=".xlsx"
           style={{ display: "none" }}
           onChange={handleFileChange}
         />
+        
+        {/* Show checkmark when upload is successful */}
+        {uploadStatus === 'success' && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: "50%",
+                background: "#4CAF50",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 15,
+              }}
+            >
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+              </svg>
+            </div>
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 20,
+                color: "#fff",
+                textAlign: "center",
+              }}
+            >
+              File uploaded successfully
+            </span>
+          </div>
+        )}
+
+        {/* Show loading when uploading */}
+        {uploadStatus === 'uploading' && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                border: "4px solid rgba(255,255,255,0.3)",
+                borderTop: "4px solid #fff",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                marginBottom: 15,
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 18,
+                color: "#fff",
+                textAlign: "center",
+              }}
+            >
+              Uploading...
+            </span>
+          </div>
+        )}
       </div>
       {/* Second rectangle 548x347, 84px to the right of the first */}
       <div
@@ -300,6 +530,53 @@ export default function PostGrades() {
           zIndex: 2,
         }}
       >
+        {/* Show error message if upload failed */}
+        {uploadStatus === 'error' && (
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: 20,
+              background: "rgba(255, 0, 0, 0.1)",
+              borderRadius: 20,
+              border: "1px solid rgba(255, 0, 0, 0.3)",
+              padding: 20,
+              overflow: "auto",
+              zIndex: 5,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 18,
+                color: "#ff6b6b",
+                display: "block",
+                marginBottom: 10,
+              }}
+            >
+              Upload Error:
+            </span>
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 400,
+                fontSize: 14,
+                color: "#fff",
+                lineHeight: 1.4,
+                wordBreak: "break-word",
+              }}
+            >
+              {errorMessage}
+            </span>
+          </div>
+        )}
+
+        {/* Show course info when upload is successful */}
+        {uploadStatus === 'success' && apiResponse && (
+          <>
         {/* Overlay text: Course: */}
         <span
           style={{
@@ -345,12 +622,155 @@ export default function PostGrades() {
               userSelect: "none",
             }}
           >
-            Select Course
-            <span style={{ marginLeft: 0, marginTop:2, display: "flex", alignItems: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+                {apiResponse.course_name || 'N/A'}
+              </span>
+            </div>
+            {/* Period Title and Rectangle below Course */}
+            <span
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25 + 25 + 7 + 39 + 8,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 25,
+                color: "#fff",
+                zIndex: 3,
+                pointerEvents: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Period:
             </span>
+            <div
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25 + 25 + 7 + 39 + 8 + 25 + 7,
+                width: 480,
+                height: 39,
+                borderRadius: 42,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 3,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  color: "#fff",
+                  marginLeft: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}
+              >
+                {apiResponse.exam_period || 'N/A'}
+              </span>
+            </div>
+            {/* Number Of Grades Title and Rectangle below Period */}
+            <span
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25 + 25 + 7 + 39 + 8 + 25 + 7 + 39 + 8,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 25,
+                color: "#fff",
+                zIndex: 3,
+                pointerEvents: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Number Of Grades
+            </span>
+            <div
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25 + 25 + 7 + 39 + 8 + 25 + 7 + 39 + 8 + 25 + 7,
+                width: 480,
+                height: 39,
+                borderRadius: 42,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 3,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  color: "#fff",
+                  marginLeft: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}
+              >
+                {apiResponse.grade_count || 'N/A'}
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* Show default content when no upload has been made */}
+        {uploadStatus === 'idle' && (
+          <>
+            {/* Overlay text: Course: */}
+            <span
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 25,
+                color: "#fff",
+                zIndex: 3,
+                pointerEvents: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Course:
+            </span>
+            {/* Rectangle below Course: */}
+            <div
+              style={{
+                position: "absolute",
+                left: 34,
+                top: 25 + 25 + 7,
+                width: 480,
+                height: 39,
+                borderRadius: 42,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 3,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 18,
+                  color: "#fff",
+                  marginLeft: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}
+              >
+                {/* Blank - no text */}
           </span>
         </div>
         {/* Period Title and Rectangle below Course */}
@@ -397,12 +817,7 @@ export default function PostGrades() {
               userSelect: "none",
             }}
           >
-            Select Period
-            <span style={{ marginLeft: 0, marginTop:2, display: "flex", alignItems: "center" }}>
-              <svg width="20" height="20" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
+                {/* Blank - no text */}
           </span>
         </div>
         {/* Number Of Grades Title and Rectangle below Period */}
@@ -434,42 +849,26 @@ export default function PostGrades() {
             zIndex: 3,
             display: "flex",
             alignItems: "center",
-            // Make it look like an input
-            border: "1.4px solid rgba(255,255,255,0.3)",
-            boxSizing: "border-box",
           }}
         >
-          <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={numGrades}
-            onChange={e => {
-              // Only allow numbers
-              const val = e.target.value.replace(/[^0-9]/g, "");
-              setNumGrades(val);
-            }}
-            placeholder="Insert the number of grades"
+              <span
             style={{
-              width: "100%",
-              height: "100%",
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              color: "#fff",
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
               fontSize: 18,
-              paddingLeft: 12,
-              paddingRight: 12,
-              textAlign: "left",
-              borderRadius: 42,
-              boxSizing: "border-box",
+                  color: "#fff",
+                  marginLeft: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
             }}
-            autoComplete="off"
-            maxLength={5}
-          />
+              >
+                {/* Blank - no text */}
+              </span>
         </div>
+          </>
+        )}
       </div>
       {/* Rectangle same as Select Grading Phase, centered, 35px below the bottom of the two rectangles */}
       <div
@@ -488,7 +887,9 @@ export default function PostGrades() {
           alignItems: "center",
           justifyContent: "center",
           zIndex: 2,
+          cursor: uploadStatus === 'success' && selectedPhase && submitStatus !== 'submitting' ? 'pointer' : 'default',
         }}
+        onClick={uploadStatus === 'success' && selectedPhase && submitStatus !== 'submitting' ? handleSubmitGrades : undefined}
       >
         {/* Overlay: Select Submit Grades + checkmark */}
         <span
@@ -499,7 +900,7 @@ export default function PostGrades() {
             fontFamily: "var(--font-roboto)",
             fontWeight: 600,
             fontSize: 25,
-            color: "#fff",
+            color: uploadStatus === 'success' && selectedPhase && submitStatus !== 'submitting' ? "#fff" : "rgba(255,255,255,0.5)",
             width: "100%",
             position: "absolute",
             left: 0,
@@ -509,15 +910,16 @@ export default function PostGrades() {
             pointerEvents: "none",
           }}
         >
-          Select Submit Grades
+          {submitStatus === 'submitting' ? 'Submitting...' : 'Select Submit Grades'}
           <img
             src="/checkmark.svg"
             alt="Checkmark"
-            style={{ marginLeft: 8, marginTop:-2, width: 19, height: 18, display: "inline-block" }}
+            style={{ marginLeft: 8, marginTop:-2, width: 19, height: 18, display: submitStatus === 'submitting' ? 'none' : 'inline-block' }}
           />
         </span>
       </div>
       {/* Upload icon centered, 65px down from the top of the first rectangle */}
+      {uploadStatus !== 'success' && (
       <div
         style={{
           position: "absolute",
@@ -539,7 +941,9 @@ export default function PostGrades() {
           style={{ display: "block" }}
         />
       </div>
+      )}
       {/* Text below the upload icon */}
+      {uploadStatus !== 'success' && (
       <div
         style={{
           position: "absolute",
@@ -565,7 +969,9 @@ export default function PostGrades() {
           Drag and drop or click here
         </span>
       </div>
+      )}
       {/* Text below the drag and drop text */}
+      {uploadStatus !== 'success' && (
       <div
         style={{
           position: "absolute",
@@ -591,6 +997,7 @@ export default function PostGrades() {
           to upload your XLSX file
         </span>
       </div>
+      )}
       {selectorOpen && selectorPosition && createPortal(
         <div
           id="selector-dropdown"

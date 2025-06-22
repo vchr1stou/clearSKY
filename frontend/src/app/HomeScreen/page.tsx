@@ -56,7 +56,7 @@ export default function HomeScreen() {
               fontWeight: 600,
             }}
           >
-            Welcome Back: User
+            Welcome Back!
           </div>
           {/* Sign Out text */}
           <div

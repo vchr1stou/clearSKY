@@ -12,7 +12,6 @@ type Course = {
 
 export default function MyCourses() {
   const router = useRouter();
-  const [debugInfo, setDebugInfo] = useState<unknown>(null);
   const [courses, setCourses] = useState<Course[]>([]);
 
   useEffect(() => {
@@ -23,7 +22,6 @@ export default function MyCourses() {
       const decoded = jwtDecode<{ role?: string }>(token);
       role = decoded.role;
     } catch {
-      setDebugInfo({ error: "Invalid token" });
       return;
     }
     if (role === "STUDENT") {
@@ -35,10 +33,11 @@ export default function MyCourses() {
       })
         .then(async (res) => {
           const data = await res.json();
-          setDebugInfo(data);
           if (Array.isArray(data)) setCourses(data);
         })
-        .catch((err: Error) => setDebugInfo({ error: err.message }));
+        .catch((err: Error) => {
+          console.error("Error fetching courses:", err.message);
+        });
     }
   }, []);
   
@@ -262,11 +261,11 @@ export default function MyCourses() {
                   <div
                     style={{
                       position: "absolute",
-                      top: 57 * i + 57 / 2 - 18.5,
+                      top: 57 * i + 57 / 2 - 10,
                       left: 30,
                       fontFamily: "var(--font-roboto)",
                       fontWeight: 600,
-                      fontSize: 25,
+                      fontSize: 20,
                       color: "#fff",
                       zIndex: 2,
                       pointerEvents: "none",
@@ -277,11 +276,11 @@ export default function MyCourses() {
                   <div
                     style={{
                       position: "absolute",
-                      top: 57 * i + 57 / 2 - 18.5,
+                      top: 57 * i + 57 / 2 - 10,
                       left: 270.67,
                       fontFamily: "var(--font-roboto)",
                       fontWeight: 600,
-                      fontSize: 25,
+                      fontSize: 20,
                       color: "#fff",
                       zIndex: 2,
                       pointerEvents: "none",
@@ -292,11 +291,11 @@ export default function MyCourses() {
                   <div
                     style={{
                       position: "absolute",
-                      top: 57 * i + 57 / 2 - 18.5,
+                      top: 57 * i + 57 / 2 - 10,
                       left: 511.33,
                       fontFamily: "var(--font-roboto)",
                       fontWeight: 600,
-                      fontSize: 25,
+                      fontSize: 20,
                       color: "#fff",
                       zIndex: 2,
                       pointerEvents: "none",
@@ -437,12 +436,6 @@ export default function MyCourses() {
             />
           ))}
         </div>
-      </div>
-
-      {/* Content will be added here */}
-      <div style={{ position: "absolute", bottom: 10, left: 10, color: "#fff", background: "rgba(0,0,0,0.5)", padding: 10, borderRadius: 8, zIndex: 100 }}>
-        <strong>Debug Output:</strong>
-        <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{JSON.stringify(debugInfo, null, 2)}</pre>
       </div>
     </div>
   );
