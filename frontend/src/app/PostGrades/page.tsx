@@ -289,7 +289,7 @@ export default function PostGrades() {
             Post Grades
           </div>
           <div
-            onClick={() => {}}
+            onClick={() => router.push('/statistics_instructor')}
             style={{
               marginLeft: 18,
               fontSize: 23,
