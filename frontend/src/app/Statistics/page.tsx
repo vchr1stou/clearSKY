@@ -275,7 +275,7 @@ export default function Statistics() {
               display: "block",
             }}
           >
-            {selectedOption} - Total
+            Total
           </span>
         </div>
       )}
@@ -395,7 +395,7 @@ export default function Statistics() {
                 display: "block",
               }}
             >
-              {selectedOption.replace(/ - Total$/, "").trim()} - Q1
+              Q1
             </span>
           </div>
         )}
@@ -448,7 +448,7 @@ export default function Statistics() {
                 display: "block",
               }}
             >
-              {selectedOption.replace(/ - Total$/, "").trim()} - Q3
+              Q3
             </span>
           </div>
         )}
@@ -501,7 +501,7 @@ export default function Statistics() {
                 display: "block",
               }}
             >
-              {selectedOption.replace(/ - Total$/, "").trim()} - Q2
+              Q2
             </span>
           </div>
         )}
@@ -554,7 +554,7 @@ export default function Statistics() {
                 display: "block",
               }}
             >
-              {selectedOption.replace(/ - Total$/, "").trim()} - Q4
+              Q4
             </span>
           </div>
         )}

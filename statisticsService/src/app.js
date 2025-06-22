@@ -14,7 +14,7 @@ app.use(express.json());
 app.use('/api/stats', statRoutes);
 
 // Error handling
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(err.status || 500).json({ message: 'Internal Server Error' });
 });
