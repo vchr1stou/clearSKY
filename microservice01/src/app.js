@@ -14,6 +14,7 @@ const {
   QUESTION_COLUMNS,
   WEIGHT_COLUMNS
 } = require('./utils/flexibleExcelParser.js');
+const { transformExamPeriod } = require('./utils/examPeriodTransformer.js');
 
 // Course format pattern: "Course Name (CourseID)"
 const COURSE_FORMAT = /(.+)\((\d+)\)/;
@@ -57,7 +58,7 @@ app.get('/api/excel-template', (req, res) => {
             'Αριθμός Μητρώου': '12345',
             'Ονοματεπώνυμο': 'John Doe',
             'Ακαδημαϊκό E-mail': 'john.doe@university.edu',
-            'Περίοδος δήλωσης': '2024-01',
+            'Περίοδος δήλωσης': '2024-25 Winter',
             'Τμήμα Τάξης': 'Computer Science (101)',
             'Κλίμακα βαθμολόγησης': '0-10',
             'Βαθμολογία': '8.5'
@@ -70,7 +71,7 @@ app.get('/api/excel-template', (req, res) => {
             'Αριθμός Μητρώου': '12345',
             'Ονοματεπώνυμο': 'John Doe',
             'Ακαδημαϊκό E-mail': 'john.doe@university.edu',
-            'Περίοδος δήλωσης': '2024-01',
+            'Περίοδος δήλωσης': '2024-25 Spring',
             'Τμήμα Τάξης': 'Computer Science (101)',
             'Κλίμακα βαθμολόγησης': '0-10',
             'Βαθμολογία': '8.5',
@@ -84,7 +85,7 @@ app.get('/api/excel-template', (req, res) => {
             'Αριθμός Μητρώου': '12345',
             'Ονοματεπώνυμο': 'John Doe',
             'Ακαδημαϊκό E-mail': 'john.doe@university.edu',
-            'Περίοδος δήλωσης': '2024-01',
+            'Περίοδος δήλωσης': '2024-25 Winter',
             'Τμήμα Τάξης': 'Computer Science (101)',
             'Κλίμακα βαθμολόγησης': '0-10',
             'Βαθμολογία': '8.5',

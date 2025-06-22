@@ -1,4 +1,5 @@
 // Excel Column Validation Utility
+const { transformExamPeriodInData } = require('./examPeriodTransformer.js');
 
 // Define the exact required columns in order
 const REQUIRED_COLUMNS = [

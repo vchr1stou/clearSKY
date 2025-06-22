@@ -1,5 +1,6 @@
 const xlsx = require('xlsx');
 const fs = require('fs');
+const { transformExamPeriodInData } = require('./examPeriodTransformer.js');
 
 // Define the exact required columns for the basic Greek format
 const REQUIRED_COLUMNS = [
@@ -255,10 +256,13 @@ function extractCourseInfo(data) {
   const courseField = firstRow['Τμήμα Τάξης'];
   const match = courseField.toString().match(COURSE_FORMAT);
   
+  // The exam period should already be transformed by parseExcelFile, but ensure it's correct
+  const examPeriod = firstRow['Περίοδος δήλωσης'];
+  
   return {
     courseName: match[1].trim(),
     courseId: match[2].trim(),
-    examPeriod: firstRow['Περίοδος δήλωσης']
+    examPeriod: examPeriod
   };
 }
 
@@ -278,7 +282,10 @@ function parseExcelFile(filePath) {
     throw new Error('No data found in Excel file');
   }
   
-  return { data, range: 2 };
+  // Transform exam periods from Greek to English format
+  const transformedData = transformExamPeriodInData(data);
+  
+  return { data: transformedData, range: 2 };
 }
 
 module.exports = {

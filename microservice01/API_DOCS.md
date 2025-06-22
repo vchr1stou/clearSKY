@@ -37,6 +37,16 @@ Required columns in exact order:
 - **Sum of all W weights must equal exactly 100**
 - **Sum of all Q grades in a row must not exceed 100**
 
+### Exam Period Format Transformation
+The service automatically transforms exam period formats from Greek to English:
+- `YYYY-YYYY ΧΕΙΜ YYYY` → `YYYY-YY Winter` (e.g., "2024-2025 ΧΕΙΜ 2024" → "2024-25 Winter")
+- `YYYY-YYYY ΕΑΡ YYYY` → `YYYY-YY Spring` (e.g., "2024-2025 ΕΑΡ 2024" → "2024-25 Spring")
+- `YYYY-YY ΧΕΙΜ` → `YYYY-YY Winter` (e.g., "2024-25 ΧΕΙΜ" → "2024-25 Winter")
+- `YYYY-YY ΕΑΡ` → `YYYY-YY Spring` (e.g., "2024-25 ΕΑΡ" → "2024-25 Spring")
+- Other formats remain unchanged
+
+This transformation is applied during Excel parsing and affects all data processing endpoints.
+
 ## API Endpoints
 
 ### Health Check
