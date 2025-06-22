@@ -1,14 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function UserManagement() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [apiUsers, setApiUsers] = useState<any[] | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ email: string; name: string } | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -31,6 +33,19 @@ export default function UserManagement() {
     };
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("created") === "1") {
+      setShowSuccess(true);
+      // Remove the query param from the URL after showing the message
+      setTimeout(() => {
+        setShowSuccess(false);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("created");
+        window.history.replaceState({}, document.title, url.pathname);
+      }, 2500);
+    }
+  }, [searchParams]);
 
   const handleDeleteUser = (email: string, name: string) => {
     setUserToDelete({ email, name });
@@ -641,6 +656,51 @@ export default function UserManagement() {
                 >
                   Delete
                 </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Success overlay, canvas-centered and responsive */}
+        {showSuccess && (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                background: "rgba(0, 0, 0, 0.32)",
+                zIndex: 10001,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 10002,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 120,
+                width: 'min(90vw, 420px)',
+                background: "rgba(149,149,149,0.25)",
+                borderRadius: 32,
+                padding: '32px 24px 28px 24px',
+                boxShadow: '0 2px 24px rgba(0,0,0,0.22)',
+                border: '0.3px solid rgba(255, 255, 255, 0.77)',
+              }}
+            >
+              <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="32" cy="32" r="32" fill="#27ae60"/>
+                <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <div style={{ color: '#27ae60', fontWeight: 700, fontSize: 'clamp(16px, 2vw, 20px)', marginTop: 18, textAlign: 'center' }}>
+                User was created successfully
               </div>
             </div>
           </>

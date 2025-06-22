@@ -97,7 +97,6 @@ export default function AddUser() {
         }),
       });
       if (res.ok) {
-        setMessage("User was created successfully");
         setError(null);
         // Clear form fields
         setEmail("");
@@ -105,6 +104,9 @@ export default function AddUser() {
         setFullName("");
         setStudentId("");
         setSelectedType(null);
+        // Redirect to user management with success flag
+        router.push("/user_management?created=1");
+        return;
       } else {
         const data = await res.json();
         setError(data.message || "Failed to create user");
@@ -609,44 +611,7 @@ export default function AddUser() {
         </div>
         {/* Success and error overlays, canvas-centered */}
         {message && (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                background: "rgba(0, 0, 0, 0.32)",
-                zIndex: 10001,
-              }}
-            />
-            <div style={{ 
-              position: "absolute", 
-              top: "50%", 
-              left: "50%", 
-              transform: "translate(-50%, -50%)", 
-              zIndex: 10002,
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              minHeight: 200,
-              background: "rgba(149,149,149,0.25)",
-              borderRadius: 32,
-              padding: '48px 64px 40px 64px',
-              boxShadow: '0 2px 24px rgba(0,0,0,0.22)',
-              border: '0.3px solid rgba(255, 255, 255, 0.77)',
-            }}>
-              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="32" fill="#27ae60"/>
-                <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <div style={{ color: '#27ae60', fontWeight: 700, fontSize: 20, marginTop: 18, textAlign: 'center' }}>
-                User was created successfully
-              </div>
-            </div>
-          </>
+          <></>
         )}
         {error && (
           <>
