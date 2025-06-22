@@ -49,280 +49,294 @@ export default function UniMoreInfo() {
         style={{ objectFit: "cover", zIndex: 0 }}
         priority
       />
-      {/* Top Navigation Bar */}
+      {/* Centered, fixed-size canvas for all UI */}
       <div
         style={{
+          width: "1440px",
+          height: "900px",
           position: "absolute",
-          top: 30,
-          left: 50,
-          width: 1340,
-          height: 60,
-          borderRadius: 100,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 18px",
-        }}
-      >
-        {/* Home and Institutions (left) */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            onClick={() => router.push("/HomeScreen?role=Institution Manager")}
-            style={{
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            Home
-          </div>
-          <div
-            style={{
-              marginLeft: 18,
-              color: "#0092FA",
-              opacity: 0.7,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-            }}
-          >
-            Institutions
-          </div>
-          <div
-            onClick={() => router.push("/user_management")}
-            style={{
-              marginLeft: 18,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            User Management
-          </div>
-        </div>
-        {/* Sign Out button (rightmost) */}
-        <div
-          onClick={() => { localStorage.removeItem("authToken"); router.push("/"); }}
-          style={{
-            fontSize: 23,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-          className="text-white transition-colors duration-200 hover:text-gray-300"
-        >
-          Sign Out
-        </div>
-      </div>
-      {/* Clearsky logo centered below header */}
-      <div
-        style={{
-          position: "absolute",
-          top: 30 + 60 + 20, // header top + header height + reduced spacing
           left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1,
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          transformOrigin: "center",
+          zIndex: 10,
         }}
       >
-        <Image
-          src="/clearsky.svg"
-          alt="Clearsky"
-          width={400}
-          height={131}
-          priority
-        />
-      </div>
-      {/* Large blurred rectangle centered below clearsky.svg */}
-      <div
-        style={{
-          position: "absolute",
-          top: 30 + 60 + 20 + 131 + 40, // moved up by reducing spacing
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 1340,
-          height: 450,
-          borderRadius: 46,
-          background: "rgba(149,149,149,0.25)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-        }}
-      >
-        {/* Inner white rectangle with back button and course/period info */}
+        {/* Top Navigation Bar */}
         <div
           style={{
             position: "absolute",
-            top: 24,
-            left: 25,
-            width: 1290,
-            height: 53,
+            top: 70,
+            left: 50,
+            width: 1340,
+            height: 60,
             borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
+            background: "rgba(128,128,128,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 18px",
           }}
         >
-          <img
-            src="/back.svg"
-            alt="Back"
-            width={26}
-            height={25}
-            style={{ position: "absolute", left: 20, top: 14, width: 26, height: 25, display: "block", cursor: "pointer" }}
-            onClick={() => router.back()}
+          {/* Home and Institutions (left) */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              onClick={() => router.push("/HomeScreen?role=Institution Manager")}
+              style={{
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              Home
+            </div>
+            <div
+              style={{
+                marginLeft: 18,
+                color: "#0092FA",
+                opacity: 0.7,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+              }}
+            >
+              Institutions
+            </div>
+            <div
+              onClick={() => router.push("/user_management")}
+              style={{
+                marginLeft: 18,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              User Management
+            </div>
+          </div>
+          {/* Sign Out button (rightmost) */}
+          <div
+            onClick={() => { localStorage.removeItem("authToken"); router.push("/"); }}
+            style={{
+              fontSize: 23,
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            className="text-white transition-colors duration-200 hover:text-gray-300"
+          >
+            Sign Out
+          </div>
+        </div>
+        {/* Clearsky logo centered below header */}
+        <div
+          style={{
+            position: "absolute",
+            top: 70 + 60 + 20, // header top + header height + reduced spacing
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1,
+          }}
+        >
+          <Image
+            src="/clearsky.svg"
+            alt="Clearsky"
+            width={400}
+            height={131}
+            priority
           />
-          {/* Course and Exam Period text */}
+        </div>
+        {/* Large blurred rectangle centered below clearsky.svg */}
+        <div
+          style={{
+            position: "absolute",
+            top: 70 + 60 + 20 + 131 + 40, // moved up by reducing spacing
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 1340,
+            height: 450,
+            borderRadius: 46,
+            background: "rgba(149,149,149,0.25)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 1,
+          }}
+        >
+          {/* Inner white rectangle with back button and course/period info */}
           <div
             style={{
               position: "absolute",
-              left: 20 + 26 + 20, // 20px from left, 26px icon, 20px gap
-              top: "50%",
-              transform: "translateY(-50%)",
+              top: 24,
+              left: 25,
+              width: 1290,
+              height: 53,
+              borderRadius: 100,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 3,
+            }}
+          >
+            <img
+              src="/back.svg"
+              alt="Back"
+              width={26}
+              height={25}
+              style={{ position: "absolute", left: 20, top: 14, width: 26, height: 25, display: "block", cursor: "pointer" }}
+              onClick={() => router.back()}
+            />
+            {/* Course and Exam Period text */}
+            <div
+              style={{
+                position: "absolute",
+                left: 20 + 26 + 20, // 20px from left, 26px icon, 20px gap
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 25,
+                color: "#fff",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {universityName}
+            </div>
+          </div>
+          {/* Email text positioned 15px down from the bottom of the rectangular overlay */}
+          <div
+            style={{
+              position: "absolute",
+              top: 24 + 53 + 15, // bottom of rectangular overlay + 15px spacing
+              left: 25,
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
               fontSize: 25,
               color: "#fff",
-              whiteSpace: "nowrap",
+              zIndex: 3,
             }}
           >
-            {universityName}
+            Email:
           </div>
-        </div>
-        {/* Email text positioned 15px down from the bottom of the rectangular overlay */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15, // bottom of rectangular overlay + 15px spacing
-            left: 25,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 3,
-          }}
-        >
-          Email:
-        </div>
-        {/* Email rectangular positioned 10px under the Email text */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15 + 25 + 10, // bottom of rectangular overlay + 15px + email text height + 10px spacing
-            left: 25,
-            width: 1290,
-            height: 53,
-            borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            paddingLeft: 20,
-          }}
-        >
-          <span
+          {/* Email rectangular positioned 10px under the Email text */}
+          <div
             style={{
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
+              position: "absolute",
+              top: 24 + 53 + 15 + 25 + 10, // bottom of rectangular overlay + 15px + email text height + 10px spacing
+              left: 25,
+              width: 1290,
+              height: 53,
+              borderRadius: 100,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 3,
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: 20,
             }}
           >
-            {university?.email || "Email not available"}
-          </span>
-        </div>
-        {/* Website text positioned 15px down from the bottom of the email rectangular */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15 + 25 + 10 + 53 + 15, // bottom of email rectangular + 15px spacing
-            left: 25,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 3,
-          }}
-        >
-          Website:
-        </div>
-        {/* Website rectangular positioned 10px under the Website text */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10, // bottom of email rectangular + 15px + website text height + 10px spacing
-            left: 25,
-            width: 1290,
-            height: 53,
-            borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            paddingLeft: 20,
-          }}
-        >
-          <span
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 20,
+                color: "#fff",
+              }}
+            >
+              {university?.email || "Email not available"}
+            </span>
+          </div>
+          {/* Website text positioned 15px down from the bottom of the email rectangular */}
+          <div
             style={{
+              position: "absolute",
+              top: 24 + 53 + 15 + 25 + 10 + 53 + 15, // bottom of email rectangular + 15px spacing
+              left: 25,
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
-              fontSize: 20,
+              fontSize: 25,
               color: "#fff",
+              zIndex: 3,
             }}
           >
-            {university?.website || "Website not available"}
-          </span>
-        </div>
-        {/* Telephone Number text positioned 15px down from the bottom of the website rectangular */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10 + 53 + 15, // bottom of website rectangular + 15px spacing
-            left: 25,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 3,
-          }}
-        >
-          Telephone Number:
-        </div>
-        {/* Telephone Number rectangular positioned 10px under the Telephone Number text */}
-        <div
-          style={{
-            position: "absolute",
-            top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10, // bottom of website rectangular + 15px + telephone text height + 10px spacing
-            left: 25,
-            width: 1290,
-            height: 53,
-            borderRadius: 100,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 3,
-            display: "flex",
-            alignItems: "center",
-            paddingLeft: 20,
-          }}
-        >
-          <span
+            Website:
+          </div>
+          {/* Website rectangular positioned 10px under the Website text */}
+          <div
             style={{
+              position: "absolute",
+              top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10, // bottom of email rectangular + 15px + website text height + 10px spacing
+              left: 25,
+              width: 1290,
+              height: 53,
+              borderRadius: 100,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 3,
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: 20,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 20,
+                color: "#fff",
+              }}
+            >
+              {university?.website || "Website not available"}
+            </span>
+          </div>
+          {/* Telephone Number text positioned 15px down from the bottom of the website rectangular */}
+          <div
+            style={{
+              position: "absolute",
+              top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10 + 53 + 15, // bottom of website rectangular + 15px spacing
+              left: 25,
               fontFamily: "var(--font-roboto)",
               fontWeight: 600,
-              fontSize: 20,
+              fontSize: 25,
               color: "#fff",
+              zIndex: 3,
             }}
           >
-            {university?.phone || "Phone not available"}
-          </span>
+            Telephone Number:
+          </div>
+          {/* Telephone Number rectangular positioned 10px under the Telephone Number text */}
+          <div
+            style={{
+              position: "absolute",
+              top: 24 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10 + 53 + 15 + 25 + 10, // bottom of website rectangular + 15px + telephone text height + 10px spacing
+              left: 25,
+              width: 1290,
+              height: 53,
+              borderRadius: 100,
+              background: "rgba(255,255,255,0.18)",
+              zIndex: 3,
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: 20,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                fontSize: 20,
+                color: "#fff",
+              }}
+            >
+              {university?.phone || "Phone not available"}
+            </span>
+          </div>
         </div>
       </div>
     </div>

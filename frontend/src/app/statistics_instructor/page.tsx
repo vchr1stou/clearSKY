@@ -209,270 +209,455 @@ export default function StatisticsInstructor() {
         style={{ objectFit: "cover", zIndex: 0 }}
         priority
       />
-      {/* Top Navigation Bar (from PostGrades) */}
+      {/* Centered, fixed-size canvas for all UI */}
       <div
         style={{
+          width: "1440px",
+          height: "900px",
           position: "absolute",
-          top: 30,
-          left: 50,
-          width: 1340,
-          height: 60,
-          borderRadius: 100,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 18px",
-        }}
-      >
-        {/* Home, Review Requests, Post Grades, Statistics (left) */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            onClick={() => router.push("/HomeScreen?role=Instructor")}
-            style={{
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            Home
-          </div>
-          <div
-            onClick={() => router.push("/ReviewRequests")}
-            style={{
-              marginLeft: 18,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            Review Requests
-          </div>
-          <div
-            onClick={() => router.push("/PostGrades")}
-            style={{
-              marginLeft: 18,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            Post Grades
-          </div>
-          <div
-            style={{
-              marginLeft: 18,
-              color: "#0092FA",
-              opacity: 0.7,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-            }}
-          >
-            Statistics
-          </div>
-        </div>
-        {/* Sign Out button (rightmost) */}
-        <div
-          onClick={() => router.push("/")}
-          style={{
-            fontSize: 23,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-          className="text-white transition-colors duration-200 hover:text-gray-300"
-        >
-          Sign Out
-        </div>
-      </div>
-      {/* Clearsky logo centered in the 85px space between nav bar and first rectangle */}
-      <div
-        style={{
-          position: "absolute",
-          top: 105, // nav bar bottom is at 130, this is the start of the 85px gap
           left: "50%",
-          transform: "translateX(-50%)",
-          height: 85,
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2,
-          pointerEvents: "none",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          transformOrigin: "center",
+          zIndex: 10,
         }}
       >
-        <img
-          src="/clearsky.svg"
-          alt="Clearsky"
-          style={{ maxHeight: 90, maxWidth: 400, width: "auto", height: "auto", display: "block" }}
-        />
-      </div>
-
-      {/* Main statistics UI copied from Statistics/page.tsx */}
-      {/* New center rectangle, now 130px from the top (where clearsky.svg used to start) */}
-      <div
-        style={{
-          position: "absolute",
-          top: 130 + 85, // move 85px further down
-          left: startLeft,
-          width: 549 * 2 + 46, // span both rectangles
-          height: 60,
-          borderRadius: 100,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 2,
-        }}
-      >
+        {/* Top Navigation Bar */}
         <div
-          ref={selectRef}
           style={{
             position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
+            top: 70,
+            left: 50,
+            width: 1340,
+            height: 60,
+            borderRadius: 100,
+            background: "rgba(128,128,128,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 1,
             display: "flex",
             alignItems: "center",
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 20,
-            color: "#fff",
-            zIndex: 3,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
+            justifyContent: "space-between",
+            padding: "0 18px",
           }}
-          onClick={handleSelectorClick}
         >
-          {selectedOption || "Select a course to view statistics"}
-          <span style={{ marginLeft: 2, display: "flex", alignItems: "center" }}>
-            <svg width="28" height="28" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
-        </div>
-      </div>
-
-      {selectedOption && (
-        <>
-          {/* Grade Distribution Rectangle and Bar Chart */}
-          <div
-            style={{
-              position: "absolute",
-              top: 130 + 85 + 60 + 42 + 25,
-              left: startLeft + 549 / 2 - 437 / 2, // center in the left rectangle
-              width: 437,
-              height: 34,
-              borderRadius: 100,
-              background: "rgba(255,255,255,0.18)",
-              zIndex: 1001,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: 'visible',
-            }}
-          >
-            <span
+          {/* Home, Review Requests, Post Grades, Statistics (left) */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              onClick={() => router.push("/HomeScreen?role=Instructor")}
               style={{
+                fontSize: 23,
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
-                fontSize: 20,
-                color: "#fff",
-                textAlign: "center",
-                width: "100%",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "block",
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              Home
+            </div>
+            <div
+              onClick={() => router.push("/ReviewRequests")}
+              style={{
+                marginLeft: 18,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              Review Requests
+            </div>
+            <div
+              onClick={() => router.push("/PostGrades")}
+              style={{
+                marginLeft: 18,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              Post Grades
+            </div>
+            <div
+              style={{
+                marginLeft: 18,
+                color: "#0092FA",
+                opacity: 0.7,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
               }}
             >
-              Grade Distribution
+              Statistics
+            </div>
+          </div>
+          {/* Sign Out button (rightmost) */}
+          <div
+            onClick={() => router.push("/")}
+            style={{
+              fontSize: 23,
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            className="text-white transition-colors duration-200 hover:text-gray-300"
+          >
+            Sign Out
+          </div>
+        </div>
+        {/* Clearsky logo centered in the 85px space between nav bar and first rectangle */}
+        <div
+          style={{
+            position: "absolute",
+            top: 145, // nav bar bottom is at 170, this is the start of the 85px gap
+            left: "50%",
+            transform: "translateX(-50%)",
+            height: 85,
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
+            pointerEvents: "none",
+          }}
+        >
+          <img
+            src="/clearsky.svg"
+            alt="Clearsky"
+            style={{ maxHeight: 90, maxWidth: 400, width: "auto", height: "auto", display: "block" }}
+          />
+        </div>
+
+        {/* Main statistics UI copied from Statistics/page.tsx */}
+        {/* New center rectangle, now 130px from the top (where clearsky.svg used to start) */}
+        <div
+          style={{
+            position: "absolute",
+            top: 170 + 85, // move 85px further down
+            left: startLeft,
+            width: 549 * 2 + 46, // span both rectangles
+            height: 60,
+            borderRadius: 100,
+            background: "rgba(128,128,128,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 2,
+          }}
+        >
+          <div
+            ref={selectRef}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              alignItems: "center",
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              fontSize: 20,
+              color: "#fff",
+              zIndex: 3,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+            onClick={handleSelectorClick}
+          >
+            {selectedOption || "Select a course to view statistics"}
+            <span style={{ marginLeft: 2, display: "flex", alignItems: "center" }}>
+              <svg width="28" height="28" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </span>
-            {/* Overlay bar graph */}
-            {(() => {
-              const dist = getGradeDistribution(courseStatsDebug);
-              if (!Array.isArray(dist) || dist.length !== 11 || !dist.every((v) => typeof v === 'number')) return null;
-              const max = Math.max(...dist, 1);
-              return (
-                <div style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: '100%', // directly below the Grade Distribution bar
-                  marginTop: 35,
-                  width: 437,
-                  height: 260,
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  justifyContent: 'flex-start',
-                  padding: '0',
-                  zIndex: 1200,
-                  boxSizing: 'border-box',
-                }}>
-                  {/* Y-axis */}
+          </div>
+        </div>
+
+        {selectedOption && (
+          <>
+            {/* Grade Distribution Rectangle and Bar Chart */}
+            <div
+              style={{
+                position: "absolute",
+                top: 170 + 85 + 60 + 42 + 25,
+                left: startLeft + 549 / 2 - 437 / 2, // center in the left rectangle
+                width: 437,
+                height: 34,
+                borderRadius: 100,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 1001,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: 'visible',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  textAlign: "center",
+                  width: "100%",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  display: "block",
+                }}
+              >
+                Grade Distribution
+              </span>
+              {/* Overlay bar graph */}
+              {(() => {
+                const dist = getGradeDistribution(courseStatsDebug);
+                if (!Array.isArray(dist) || dist.length !== 11 || !dist.every((v) => typeof v === 'number')) return null;
+                const max = Math.max(...dist, 1);
+                return (
                   <div style={{
                     position: 'absolute',
                     left: 0,
-                    top: 0,
-                    bottom: 24,
-                    width: 32,
+                    top: '100%', // directly below the Grade Distribution bar
+                    marginTop: 35,
+                    width: 437,
+                    height: 260,
                     display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-start',
-                    gap: `${(260 - 24 - 24) / 3}px`,
                     alignItems: 'flex-end',
-                    zIndex: 2,
-                    pointerEvents: 'none',
+                    justifyContent: 'flex-start',
+                    padding: '0',
+                    zIndex: 1200,
+                    boxSizing: 'border-box',
                   }}>
-                    <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{max}</span>
-                    <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max * 2 / 3)}</span>
-                    <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max / 3)}</span>
-                  </div>
-                  {/* Bars */}
-                  <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%', position: 'relative', zIndex: 1 }}>
-                    {dist.map((count, i) => (
-                      <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 32, margin: '0 3px', position: 'relative' }}>
+                    {/* Y-axis */}
+                    <div style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      bottom: 24,
+                      width: 32,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'flex-start',
+                      gap: `${(260 - 24 - 24) / 3}px`,
+                      alignItems: 'flex-end',
+                      zIndex: 2,
+                      pointerEvents: 'none',
+                    }}>
+                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{max}</span>
+                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max * 2 / 3)}</span>
+                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max / 3)}</span>
+                    </div>
+                    {/* Bars */}
+                    <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%', position: 'relative', zIndex: 1 }}>
+                      {dist.map((count, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 32, margin: '0 3px', position: 'relative' }}>
+                          <div
+                            style={{
+                              width: 26,
+                              height: `${Math.round((count / max) * 200)}px`,
+                              background: '#0092FA',
+                              borderRadius: 8,
+                              marginBottom: 2,
+                              transition: 'height 0.3s',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                            }}
+                            onMouseEnter={e => {
+                              const rect = (e.target as HTMLElement).getBoundingClientRect();
+                              setBarTooltip({ index: i, count, x: rect.left + rect.width / 2, y: rect.top });
+                            }}
+                            onMouseLeave={() => setBarTooltip(null)}
+                          />
+                          <span style={{ fontSize: 15, color: '#fff', opacity: 0.8, marginTop: 4 }}>{i}</span>
+                        </div>
+                      ))}
+                      {/* Tooltip */}
+                      {barTooltip && (
                         <div
                           style={{
-                            width: 26,
-                            height: `${Math.round((count / max) * 200)}px`,
-                            background: '#0092FA',
-                            borderRadius: 8,
-                            marginBottom: 2,
-                            transition: 'height 0.3s',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                            position: 'fixed',
+                            left: barTooltip.x,
+                            top: barTooltip.y - 36,
+                            transform: 'translate(-50%, -100%)',
+                            background: '#222',
+                            color: '#fff',
+                            padding: '8px 18px',
+                            borderRadius: 10,
+                            fontSize: 17,
+                            fontWeight: 600,
+                            pointerEvents: 'none',
+                            zIndex: 9999,
+                            boxShadow: '0 2px 12px rgba(0,0,0,0.22)'
                           }}
-                          onMouseEnter={e => {
-                            const rect = (e.target as HTMLElement).getBoundingClientRect();
-                            setBarTooltip({ index: i, count, x: rect.left + rect.width / 2, y: rect.top });
-                          }}
-                          onMouseLeave={() => setBarTooltip(null)}
+                        >
+                          {`Count: ${barTooltip.count}`}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Pass / Fail Rate rectangle only behind the title, like Grade Distribution */}
+            <div
+              style={{
+                position: "absolute",
+                top: 170 + 85 + 60 + 42 + 25,
+                left: startLeft + 549 + 46 + 549 / 2 - 437 / 2, // center in the right rectangle
+                width: 437,
+                height: 34,
+                borderRadius: 100,
+                background: "rgba(255,255,255,0.18)",
+                zIndex: 1001,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: 'visible',
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  textAlign: "center",
+                  width: "100%",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  display: "block",
+                }}
+              >
+                Pass / Fail Rate
+              </span>
+            </div>
+            {/* Pie chart for pass/fail rate, below the rectangle */}
+            <div
+              style={{
+                position: "absolute",
+                top: 170 + 85 + 60 + 42 + 25 + 34 + 45, // below the rectangle, with 35px margin like Grade Distribution
+                left: startLeft + 549 + 46 + (549 - 250) / 2, // center the 200px pie chart in the right rectangle
+                width: 250,
+                height: 250,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1001,
+              }}
+            >
+              {(() => {
+                let passRate = 0, failRate = 0;
+                if (courseStatsDebug && typeof courseStatsDebug === 'object') {
+                  const statsObj = courseStatsDebug as Record<string, unknown>;
+                  if (typeof statsObj.passRate === 'number') passRate = statsObj.passRate;
+                  else if (typeof statsObj.passRate === 'string') passRate = parseFloat(statsObj.passRate);
+                  if (typeof statsObj.failRate === 'number') failRate = statsObj.failRate;
+                  else if (typeof statsObj.failRate === 'string') failRate = parseFloat(statsObj.failRate);
+                  // Sometimes nested in data[0]
+                  if ((!passRate && !failRate) && Array.isArray(statsObj.data) && statsObj.data.length > 0 && typeof statsObj.data[0] === 'object') {
+                    const nested = statsObj.data[0] as Record<string, unknown>;
+                    if (typeof nested.passRate === 'number') passRate = nested.passRate;
+                    else if (typeof nested.passRate === 'string') passRate = parseFloat(nested.passRate);
+                    if (typeof nested.failRate === 'number') failRate = nested.failRate;
+                    else if (typeof nested.failRate === 'string') failRate = parseFloat(nested.failRate);
+                  }
+                }
+                if (passRate + failRate === 0) return <span style={{color:'#fff', opacity:0.7, fontSize:16, marginTop:12}}>No data</span>;
+                // Pie chart math
+                const total = passRate + failRate;
+                const passPercent = passRate / total;
+                const failPercent = failRate / total;
+                const size = 250;
+                const radius = size / 2 - 2; // leave 2px padding
+                const center = size / 2;
+                // Helper to describe an SVG arc (fixed for correct sweep and largeArcFlag)
+                function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+                  const start = {
+                    x: cx + r * Math.cos((startAngle - 90) * Math.PI / 180),
+                    y: cy + r * Math.sin((startAngle - 90) * Math.PI / 180)
+                  };
+                  const end = {
+                    x: cx + r * Math.cos((endAngle - 90) * Math.PI / 180),
+                    y: cy + r * Math.sin((endAngle - 90) * Math.PI / 180)
+                  };
+                  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+                  return [
+                    `M ${cx} ${cy}`,
+                    `L ${start.x} ${start.y}`,
+                    `A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
+                    'Z'
+                  ].join(' ');
+                }
+                // Angles for pass segment
+                const passAngle = passPercent * 360;
+                let passPath = null;
+                let showFullGreen = false;
+                if (passPercent === 1) {
+                  showFullGreen = true;
+                } else if (passPercent > 0) {
+                  passPath = describeArc(center, center, radius, 0, passAngle);
+                }
+                // Handlers
+                const handlePieMouseMove = (e: React.MouseEvent, label: string, percent: number) => {
+                  setPieTooltip({ label, percent, x: e.clientX, y: e.clientY });
+                };
+                const handlePieMouseLeave = () => {
+                  setPieTooltip(null);
+                };
+                return (
+                  <div style={{position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center'}}>
+                    <svg width={size} height={size}>
+                      {/* Fail (background) segment - full filled circle */}
+                      <circle
+                        cx={center}
+                        cy={center}
+                        r={radius}
+                        fill="#e74c3c"
+                        style={{ cursor: 'pointer', filter: passFailHovered === 'fail' ? 'brightness(1.2)' : 'none' }}
+                        onMouseEnter={() => setPassFailHovered('fail')}
+                        onMouseMove={e => handlePieMouseMove(e, 'Fail', failPercent)}
+                        onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
+                      />
+                      {/* Pass segment - filled arc or full circle if 100% */}
+                      {showFullGreen && (
+                        <circle
+                          cx={center}
+                          cy={center}
+                          r={radius}
+                          fill="#27ae60"
+                          style={{ cursor: 'pointer', filter: passFailHovered === 'pass' ? 'brightness(1.2)' : 'none' }}
+                          onMouseEnter={() => setPassFailHovered('pass')}
+                          onMouseMove={e => handlePieMouseMove(e, 'Pass', passPercent)}
+                          onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
                         />
-                        <span style={{ fontSize: 15, color: '#fff', opacity: 0.8, marginTop: 4 }}>{i}</span>
-                      </div>
-                    ))}
-                    {/* Tooltip */}
-                    {barTooltip && (
+                      )}
+                      {passPath && passPercent > 0 && passPercent < 1 && (
+                        <path
+                          d={passPath}
+                          fill="#27ae60"
+                          style={{ cursor: 'pointer', filter: passFailHovered === 'pass' ? 'brightness(1.2)' : 'none' }}
+                          onMouseEnter={() => setPassFailHovered('pass')}
+                          onMouseMove={e => handlePieMouseMove(e, 'Pass', passPercent)}
+                          onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
+                        />
+                      )}
+                    </svg>
+                    {/* Tooltip for pie chart */}
+                    {pieTooltip && (
                       <div
                         style={{
                           position: 'fixed',
-                          left: barTooltip.x,
-                          top: barTooltip.y - 36,
-                          transform: 'translate(-50%, -100%)',
+                          left: pieTooltip.x + 12,
+                          top: pieTooltip.y - 12,
                           background: '#222',
                           color: '#fff',
                           padding: '8px 18px',
@@ -484,270 +669,99 @@ export default function StatisticsInstructor() {
                           boxShadow: '0 2px 12px rgba(0,0,0,0.22)'
                         }}
                       >
-                        {`Count: ${barTooltip.count}`}
+                        {pieTooltip.label}: {Math.round(pieTooltip.percent * 100)}%
                       </div>
                     )}
                   </div>
-                </div>
-              );
-            })()}
-          </div>
+                );
+              })()}
+            </div>
+          </>
+        )}
 
-          {/* Pass / Fail Rate rectangle only behind the title, like Grade Distribution */}
+        {/* Selector dropdown rendered at top level */}
+        {selectorOpen && selectorPosition && createPortal(
           <div
+            id="selector-dropdown"
             style={{
               position: "absolute",
-              top: 130 + 85 + 60 + 42 + 25,
-              left: startLeft + 549 + 46 + 549 / 2 - 437 / 2, // center in the right rectangle
-              width: 437,
-              height: 34,
-              borderRadius: 100,
+              top: selectorPosition.top,
+              left: selectorPosition.left + (selectorPosition.width / 2) - 210, // 210 = 420/2
+              width: 420,
+              borderRadius: 42,
               background: "rgba(255,255,255,0.18)",
-              zIndex: 1001,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: 'visible',
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "0.3px solid rgba(255, 255, 255, 0.77)",
+              boxSizing: "border-box",
+              zIndex: 1000,
+              overflow: "hidden",
             }}
           >
-            <span
-              style={{
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 20,
-                color: "#fff",
-                textAlign: "center",
-                width: "100%",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                display: "block",
-              }}
-            >
-              Pass / Fail Rate
-            </span>
-          </div>
-          {/* Pie chart for pass/fail rate, below the rectangle */}
-          <div
-            style={{
-              position: "absolute",
-              top: 130 + 85 + 60 + 42 + 25 + 34 + 45, // below the rectangle, with 35px margin like Grade Distribution
-              left: startLeft + 549 + 46 + (549 - 250) / 2, // center the 200px pie chart in the right rectangle
-              width: 250,
-              height: 250,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1001,
-            }}
-          >
-            {(() => {
-              let passRate = 0, failRate = 0;
-              if (courseStatsDebug && typeof courseStatsDebug === 'object') {
-                const statsObj = courseStatsDebug as Record<string, unknown>;
-                if (typeof statsObj.passRate === 'number') passRate = statsObj.passRate;
-                else if (typeof statsObj.passRate === 'string') passRate = parseFloat(statsObj.passRate);
-                if (typeof statsObj.failRate === 'number') failRate = statsObj.failRate;
-                else if (typeof statsObj.failRate === 'string') failRate = parseFloat(statsObj.failRate);
-                // Sometimes nested in data[0]
-                if ((!passRate && !failRate) && Array.isArray(statsObj.data) && statsObj.data.length > 0 && typeof statsObj.data[0] === 'object') {
-                  const nested = statsObj.data[0] as Record<string, unknown>;
-                  if (typeof nested.passRate === 'number') passRate = nested.passRate;
-                  else if (typeof nested.passRate === 'string') passRate = parseFloat(nested.passRate);
-                  if (typeof nested.failRate === 'number') failRate = nested.failRate;
-                  else if (typeof nested.failRate === 'string') failRate = parseFloat(nested.failRate);
-                }
-              }
-              if (passRate + failRate === 0) return <span style={{color:'#fff', opacity:0.7, fontSize:16, marginTop:12}}>No data</span>;
-              // Pie chart math
-              const total = passRate + failRate;
-              const passPercent = passRate / total;
-              const failPercent = failRate / total;
-              const size = 250;
-              const radius = size / 2 - 2; // leave 2px padding
-              const center = size / 2;
-              // Helper to describe an SVG arc (fixed for correct sweep and largeArcFlag)
-              function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
-                const start = {
-                  x: cx + r * Math.cos((startAngle - 90) * Math.PI / 180),
-                  y: cy + r * Math.sin((startAngle - 90) * Math.PI / 180)
-                };
-                const end = {
-                  x: cx + r * Math.cos((endAngle - 90) * Math.PI / 180),
-                  y: cy + r * Math.sin((endAngle - 90) * Math.PI / 180)
-                };
-                const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
-                return [
-                  `M ${cx} ${cy}`,
-                  `L ${start.x} ${start.y}`,
-                  `A ${r} ${r} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
-                  'Z'
-                ].join(' ');
-              }
-              // Angles for pass segment
-              const passAngle = passPercent * 360;
-              let passPath = null;
-              let showFullGreen = false;
-              if (passPercent === 1) {
-                showFullGreen = true;
-              } else if (passPercent > 0) {
-                passPath = describeArc(center, center, radius, 0, passAngle);
-              }
-              // Handlers
-              const handlePieMouseMove = (e: React.MouseEvent, label: string, percent: number) => {
-                setPieTooltip({ label, percent, x: e.clientX, y: e.clientY });
-              };
-              const handlePieMouseLeave = () => {
-                setPieTooltip(null);
-              };
-              return (
-                <div style={{position:'relative', width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center'}}>
-                  <svg width={size} height={size}>
-                    {/* Fail (background) segment - full filled circle */}
-                    <circle
-                      cx={center}
-                      cy={center}
-                      r={radius}
-                      fill="#e74c3c"
-                      style={{ cursor: 'pointer', filter: passFailHovered === 'fail' ? 'brightness(1.2)' : 'none' }}
-                      onMouseEnter={() => setPassFailHovered('fail')}
-                      onMouseMove={e => handlePieMouseMove(e, 'Fail', failPercent)}
-                      onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
-                    />
-                    {/* Pass segment - filled arc or full circle if 100% */}
-                    {showFullGreen && (
-                      <circle
-                        cx={center}
-                        cy={center}
-                        r={radius}
-                        fill="#27ae60"
-                        style={{ cursor: 'pointer', filter: passFailHovered === 'pass' ? 'brightness(1.2)' : 'none' }}
-                        onMouseEnter={() => setPassFailHovered('pass')}
-                        onMouseMove={e => handlePieMouseMove(e, 'Pass', passPercent)}
-                        onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
-                      />
-                    )}
-                    {passPath && passPercent > 0 && passPercent < 1 && (
-                      <path
-                        d={passPath}
-                        fill="#27ae60"
-                        style={{ cursor: 'pointer', filter: passFailHovered === 'pass' ? 'brightness(1.2)' : 'none' }}
-                        onMouseEnter={() => setPassFailHovered('pass')}
-                        onMouseMove={e => handlePieMouseMove(e, 'Pass', passPercent)}
-                        onMouseLeave={() => { setPassFailHovered(null); handlePieMouseLeave(); }}
-                      />
-                    )}
-                  </svg>
-                  {/* Tooltip for pie chart */}
-                  {pieTooltip && (
-                    <div
-                      style={{
-                        position: 'fixed',
-                        left: pieTooltip.x + 12,
-                        top: pieTooltip.y - 12,
-                        background: '#222',
-                        color: '#fff',
-                        padding: '8px 18px',
-                        borderRadius: 10,
-                        fontSize: 17,
-                        fontWeight: 600,
-                        pointerEvents: 'none',
-                        zIndex: 9999,
-                        boxShadow: '0 2px 12px rgba(0,0,0,0.22)'
-                      }}
-                    >
-                      {pieTooltip.label}: {Math.round(pieTooltip.percent * 100)}%
-                    </div>
-                  )}
+            {courses.length === 0 ? (
+              <div style={{ color: '#fff', padding: '12px 20px', fontFamily: 'var(--font-roboto)', fontWeight: 600, fontSize: 20, textAlign: 'center' }}>No courses found.</div>
+            ) : (
+              courses.map((course, idx) => (
+                <div
+                  key={course.course_name + course.exam_period + idx}
+                  onClick={() => handleOptionSelect(course)}
+                  style={{
+                    padding: "12px 20px",
+                    fontFamily: "var(--font-roboto)",
+                    fontWeight: 600,
+                    fontSize: 20,
+                    color: "#fff",
+                    cursor: "pointer",
+                    borderBottom: idx < courses.length - 1 ? "0.3px solid rgba(255, 255, 255, 0.3)" : "none",
+                    transition: "background-color 0.2s",
+                    textAlign: 'center',
+                  }}
+                  onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.28)')}
+                  onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+                >
+                  {course.course_name} - {course.exam_period}
                 </div>
-              );
-            })()}
-          </div>
-        </>
-      )}
+              ))
+            )}
+          </div>,
+          document.body
+        )}
 
-      {/* Selector dropdown rendered at top level */}
-      {selectorOpen && selectorPosition && createPortal(
+        {/* Left rectangle, now centered as a pair */}
         <div
-          id="selector-dropdown"
           style={{
             position: "absolute",
-            top: selectorPosition.top,
-            left: selectorPosition.left + (selectorPosition.width / 2) - 210, // 210 = 420/2
-            width: 420,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
+            top: 170 + 85 + 60 + 42,
+            left: startLeft,
+            width: 549,
+            height: 433,
+            borderRadius: 46,
+            background: "rgba(128,128,128,0.3)",
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
             border: "0.3px solid rgba(255, 255, 255, 0.77)",
             boxSizing: "border-box",
-            zIndex: 1000,
-            overflow: "hidden",
+            zIndex: 2,
           }}
-        >
-          {courses.length === 0 ? (
-            <div style={{ color: '#fff', padding: '12px 20px', fontFamily: 'var(--font-roboto)', fontWeight: 600, fontSize: 20, textAlign: 'center' }}>No courses found.</div>
-          ) : (
-            courses.map((course, idx) => (
-              <div
-                key={course.course_name + course.exam_period + idx}
-                onClick={() => handleOptionSelect(course)}
-                style={{
-                  padding: "12px 20px",
-                  fontFamily: "var(--font-roboto)",
-                  fontWeight: 600,
-                  fontSize: 20,
-                  color: "#fff",
-                  cursor: "pointer",
-                  borderBottom: idx < courses.length - 1 ? "0.3px solid rgba(255, 255, 255, 0.3)" : "none",
-                  transition: "background-color 0.2s",
-                  textAlign: 'center',
-                }}
-                onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.28)')}
-                onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
-              >
-                {course.course_name} - {course.exam_period}
-              </div>
-            ))
-          )}
-        </div>,
-        document.body
-      )}
-
-      {/* Left rectangle, now centered as a pair */}
-      <div
-        style={{
-          position: "absolute",
-          top: 130 + 85 + 60 + 42,
-          left: startLeft,
-          width: 549,
-          height: 433,
-          borderRadius: 46,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 2,
-        }}
-      />
-      {/* Right rectangle, now centered as a pair */}
-      <div
-        style={{
-          position: "absolute",
-          top: 130 + 85 + 60 + 42,
-          left: startLeft + 549 + 46,
-          width: 549,
-          height: 433,
-          borderRadius: 46,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 2,
-        }}
-      />
+        />
+        {/* Right rectangle, now centered as a pair */}
+        <div
+          style={{
+            position: "absolute",
+            top: 170 + 85 + 60 + 42,
+            left: startLeft + 549 + 46,
+            width: 549,
+            height: 433,
+            borderRadius: 46,
+            background: "rgba(128,128,128,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 2,
+          }}
+        />
+      </div>
     </div>
   );
 } 

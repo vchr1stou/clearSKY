@@ -42,280 +42,294 @@ export default function Institutions() {
         style={{ objectFit: "cover", zIndex: 0 }}
         priority
       />
-      {/* Top Navigation Bar */}
+      {/* Centered, fixed-size canvas for all UI */}
       <div
         style={{
+          width: "1440px",
+          height: "900px",
           position: "absolute",
-          top: 30,
-          left: 50,
-          width: 1340,
-          height: 60,
-          borderRadius: 100,
-          background: "rgba(128,128,128,0.3)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 18px",
-        }}
-      >
-        {/* Home and Institutions (left) */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            onClick={() => router.push("/HomeScreen?role=Institution Manager")}
-            style={{
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            Home
-          </div>
-          <div
-            style={{
-              marginLeft: 18,
-              color: "#0092FA",
-              opacity: 0.7,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-            }}
-          >
-            Institutions
-          </div>
-          <div
-            onClick={() => router.push("/user_management")}
-            style={{
-              marginLeft: 18,
-              fontSize: 23,
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            className="text-white transition-colors duration-200 hover:text-gray-300"
-          >
-            User Management
-          </div>
-        </div>
-        {/* Sign Out button (rightmost) */}
-        <div
-          onClick={() => { localStorage.removeItem("authToken"); router.push("/"); }}
-          style={{
-            fontSize: 23,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-          className="text-white transition-colors duration-200 hover:text-gray-300"
-        >
-          Sign Out
-        </div>
-      </div>
-      {/* Clearsky logo centered below header */}
-      <div
-        style={{
-          position: "absolute",
-          top: 30 + 60 + 20, // header top + header height + reduced spacing
           left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1,
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          transformOrigin: "center",
+          zIndex: 10,
         }}
       >
-        <Image
-          src="/clearsky.svg"
-          alt="Clearsky"
-          width={400}
-          height={131}
-          priority
-        />
-      </div>
-      {/* Large blurred rectangle centered below clearsky.svg */}
-      <div
-        style={{
-          position: "absolute",
-          top: 30 + 60 + 20 + 131 + 40, // moved up by reducing spacing
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 1340,
-          height: 450,
-          borderRadius: 46,
-          background: "rgba(149,149,149,0.25)",
-          backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)",
-          border: "0.3px solid rgba(255, 255, 255, 0.77)",
-          boxSizing: "border-box",
-          zIndex: 1,
-        }}
-      >
-        {/* Overlayed Institution Name text */}
+        {/* Top Navigation Bar */}
         <div
           style={{
             position: "absolute",
-            top: 15,
-            left: 30,
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        >
-          Institution Name
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 15,
-            left: 30 + 450 + 100, // 30px from left + Institution Name width + 100px spacing
-            fontFamily: "var(--font-roboto)",
-            fontWeight: 600,
-            fontSize: 25,
-            color: "#fff",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        >
-          Address
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            top: 20.5 + 25 + 16, // header top + header height (approx) + 16px
-            left: 30,
-            width: 1280,
-            height: 1,
-            background: "rgba(255,255,255,0.8)",
-            zIndex: 2,
-            pointerEvents: "none",
-          }}
-        />
-        {/* Scrollable row content */}
-        <div
-          style={{
-            position: "absolute",
-            top: 20.5 + 25 + 16, // below the header line
-            left: 0,
+            top: 70,
+            left: 50,
             width: 1340,
-            height: 450 - (20.5 + 25 + 16) - 20, // leave some padding at the bottom
-            overflowY: "auto",
+            height: 60,
+            borderRadius: 100,
+            background: "rgba(128,128,128,0.3)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 18px",
           }}
         >
-          {institutions.map((row, i) => (
+          {/* Home and Institutions (left) */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
             <div
-              key={"name-" + i}
+              onClick={() => router.push("/HomeScreen?role=Institution Manager")}
               style={{
-                position: "absolute",
-                top: 57 * i,
-                left: 30,
-                height: 57,
-                display: "flex",
-                alignItems: "center",
+                fontSize: 23,
                 fontFamily: "var(--font-roboto)",
                 fontWeight: 600,
-                fontSize: 20,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.name}
-            </div>
-          ))}
-          {institutions.map((row, i) => (
-            <div
-              key={"address-" + i}
-              style={{
-                position: "absolute",
-                top: 57 * i,
-                left: 30 + 450 + 100, // 30px from left + Institution Name width + 100px spacing
-                height: 57,
-                display: "flex",
-                alignItems: "center",
-                fontFamily: "var(--font-roboto)",
-                fontWeight: 600,
-                fontSize: 20,
-                color: "#fff",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            >
-              {row.location}
-            </div>
-          ))}
-          {institutions.map((row, i) => (
-            <div
-              key={"action-rect-2-" + i}
-              onClick={() => router.push(`/uni_more_info?university=${encodeURIComponent(row.name)}`)}
-              style={{
-                position: "absolute",
-                top: 57 * i + (57 - 33) / 2,
-                left: 1310 - 110,
-                width: 110,
-                height: 33,
-                borderRadius: 100,
-                background: "rgba(255,255,255,0.18)",
-                zIndex: 3,
-                display: "flex",
-                alignItems: "center",
                 cursor: "pointer",
               }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
             >
+              Home
+            </div>
+            <div
+              style={{
+                marginLeft: 18,
+                color: "#0092FA",
+                opacity: 0.7,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+              }}
+            >
+              Institutions
+            </div>
+            <div
+              onClick={() => router.push("/user_management")}
+              style={{
+                marginLeft: 18,
+                fontSize: 23,
+                fontFamily: "var(--font-roboto)",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+              className="text-white transition-colors duration-200 hover:text-gray-300"
+            >
+              User Management
+            </div>
+          </div>
+          {/* Sign Out button (rightmost) */}
+          <div
+            onClick={() => { localStorage.removeItem("authToken"); router.push("/"); }}
+            style={{
+              fontSize: 23,
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+            className="text-white transition-colors duration-200 hover:text-gray-300"
+          >
+            Sign Out
+          </div>
+        </div>
+        {/* Clearsky logo centered below header */}
+        <div
+          style={{
+            position: "absolute",
+            top: 70 + 60 + 20, // header top + header height + reduced spacing
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1,
+          }}
+        >
+          <Image
+            src="/clearsky.svg"
+            alt="Clearsky"
+            width={400}
+            height={131}
+            priority
+          />
+        </div>
+        {/* Large blurred rectangle centered below clearsky.svg */}
+        <div
+          style={{
+            position: "absolute",
+            top: 70 + 60 + 20 + 131 + 40, // moved up by reducing spacing
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 1340,
+            height: 450,
+            borderRadius: 46,
+            background: "rgba(149,149,149,0.25)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+            border: "0.3px solid rgba(255, 255, 255, 0.77)",
+            boxSizing: "border-box",
+            zIndex: 1,
+          }}
+        >
+          {/* Overlayed Institution Name text */}
+          <div
+            style={{
+              position: "absolute",
+              top: 15,
+              left: 30,
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              fontSize: 25,
+              color: "#fff",
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          >
+            Institution Name
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 15,
+              left: 30 + 450 + 100, // 30px from left + Institution Name width + 100px spacing
+              fontFamily: "var(--font-roboto)",
+              fontWeight: 600,
+              fontSize: 25,
+              color: "#fff",
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          >
+            Address
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 20.5 + 25 + 16, // header top + header height (approx) + 16px
+              left: 30,
+              width: 1280,
+              height: 1,
+              background: "rgba(255,255,255,0.8)",
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          />
+          {/* Scrollable row content */}
+          <div
+            style={{
+              position: "absolute",
+              top: 20.5 + 25 + 16, // below the header line
+              left: 0,
+              width: 1340,
+              height: 450 - (20.5 + 25 + 16) - 20, // leave some padding at the bottom
+              overflowY: "auto",
+            }}
+          >
+            {institutions.map((row, i) => (
               <div
+                key={"name-" + i}
                 style={{
                   position: "absolute",
-                  left: 13,
+                  top: 57 * i,
+                  left: 30,
+                  height: 57,
+                  display: "flex",
+                  alignItems: "center",
                   fontFamily: "var(--font-roboto)",
                   fontWeight: 600,
-                  fontSize: 15,
+                  fontSize: 20,
                   color: "#fff",
-                  zIndex: 4,
+                  zIndex: 2,
                   pointerEvents: "none",
                 }}
               >
-                More Info
+                {row.name}
               </div>
+            ))}
+            {institutions.map((row, i) => (
               <div
+                key={"address-" + i}
                 style={{
                   position: "absolute",
-                  left: 12 + 70 + 2, // 12px from left + approximate text width + 3px spacing
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 4,
+                  top: 57 * i,
+                  left: 30 + 450 + 100, // 30px from left + Institution Name width + 100px spacing
+                  height: 57,
+                  display: "flex",
+                  alignItems: "center",
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 20,
+                  color: "#fff",
+                  zIndex: 2,
                   pointerEvents: "none",
                 }}
               >
-                <Image
-                  src="/more_info.svg"
-                  alt="More Info"
-                  width={14}
-                  height={14}
-                />
+                {row.location}
               </div>
-            </div>
-          ))}
-          {/* 25 horizontal lines as row separators */}
-          {Array.from({ length: 24 }).map((_, i) => (
-            <div
-              key={"row-line-" + i}
-              style={{
-                position: "absolute",
-                top: 20.5 + 25 + 16 + 57 * i,
-                left: 30,
-                width: 1280,
-                height: 1,
-                background: "rgba(255,255,255,0.8)",
-                zIndex: 2,
-                pointerEvents: "none",
-              }}
-            />
-          ))}
+            ))}
+            {institutions.map((row, i) => (
+              <div
+                key={"action-rect-2-" + i}
+                onClick={() => router.push(`/uni_more_info?university=${encodeURIComponent(row.name)}`)}
+                style={{
+                  position: "absolute",
+                  top: 57 * i + (57 - 33) / 2,
+                  left: 1310 - 110,
+                  width: 110,
+                  height: 33,
+                  borderRadius: 100,
+                  background: "rgba(255,255,255,0.18)",
+                  zIndex: 3,
+                  display: "flex",
+                  alignItems: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 13,
+                    fontFamily: "var(--font-roboto)",
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: "#fff",
+                    zIndex: 4,
+                    pointerEvents: "none",
+                  }}
+                >
+                  More Info
+                </div>
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 12 + 70 + 2, // 12px from left + approximate text width + 3px spacing
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    zIndex: 4,
+                    pointerEvents: "none",
+                  }}
+                >
+                  <Image
+                    src="/more_info.svg"
+                    alt="More Info"
+                    width={14}
+                    height={14}
+                  />
+                </div>
+              </div>
+            ))}
+            {/* 25 horizontal lines as row separators */}
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div
+                key={"row-line-" + i}
+                style={{
+                  position: "absolute",
+                  top: 20.5 + 25 + 16 + 57 * i,
+                  left: 30,
+                  width: 1280,
+                  height: 1,
+                  background: "rgba(255,255,255,0.8)",
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
