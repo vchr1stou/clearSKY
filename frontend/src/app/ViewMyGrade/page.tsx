@@ -16,8 +16,6 @@ export default function ViewMyGrade() {
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
   const period = searchParams.get("period") || "Exam Period";
-  const [selectedQ, setSelectedQ] = useState("Q1");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -69,9 +67,6 @@ export default function ViewMyGrade() {
   
   // Use Q0i keys if available, otherwise fall back to Qi keys
   const questionKeys = q0iKeys.length > 0 ? q0iKeys : qiKeys;
-  
-  // Generate question labels for dropdown
-  const questionLabels = questionKeys.map(key => key.toUpperCase());
 
   if (loading) {
     return (
@@ -196,7 +191,7 @@ export default function ViewMyGrade() {
           top: 30 + 60 + 40 + 131 + 40, // nav top + nav height + spacing + clearsky height + 40px
           left: "50%",
           transform: "translateX(-50%)",
-          width: 1340,
+          width: 700, // smaller width
           height: 450,
           borderRadius: 46,
           background: "linear-gradient(rgba(149,149,149,0.25), rgba(255,0,0,0.18))",
@@ -212,8 +207,8 @@ export default function ViewMyGrade() {
           style={{
             position: "absolute",
             top: 25,
-            left: 24,
-            width: 1290,
+            left: 25,
+            width: 650, // smaller width
             height: 53,
             borderRadius: 100,
             background: "rgba(255,255,255,0.18)",
@@ -250,10 +245,11 @@ export default function ViewMyGrade() {
         <div
           style={{
             position: "absolute",
-            top: 25 + 53 + 36, // 25px (top of back rect) + 53px (height of back rect) + 36px
-            left: 25,
-            width: 373,
-            height: 295,
+            top: 25 + 53 + 20, // move 20px up
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 610, // slightly bigger
+            height: 315, // slightly bigger
             borderRadius: 42,
             background: "rgba(255,255,255,0.18)",
             zIndex: 2,
@@ -294,8 +290,8 @@ export default function ViewMyGrade() {
               style={{
                 position: "absolute",
                 top: 34, // 7px (top) + 20px (font size) + 7px
-                left: 15,
-                width: 344.01,
+                left: (610 - 570) / 2, // center the line horizontally
+                width: 570, // 610px width minus 2*20px margin
                 height: 1,
                 background: "rgba(255,255,255,0.8)",
                 zIndex: 3,
@@ -308,8 +304,8 @@ export default function ViewMyGrade() {
                 style={{
                   position: "absolute",
                   top: 34 + 48 * (i + 1),
-                  left: 15,
-                  width: 344.01,
+                  left: (610 - 570) / 2, // center the line horizontally
+                  width: 570, // 610px width minus 2*20px margin
                   height: 1,
                   background: "rgba(255,255,255,0.8)",
                   zIndex: 3,
@@ -322,7 +318,7 @@ export default function ViewMyGrade() {
               <div
                 style={{
                   position: "absolute",
-                  left: 291,
+                  left: 600 - 67 - 15, // align to the right edge minus margin
                   top: 34 + 24,
                   width: 67,
                   height: 24,
@@ -352,7 +348,7 @@ export default function ViewMyGrade() {
               <div
                 style={{
                   position: "absolute",
-                  left: 15,
+                  left: 17,
                   top: 34 + 24,
                   transform: "translateY(-50%)",
                   fontFamily: "var(--font-roboto)",
@@ -365,7 +361,6 @@ export default function ViewMyGrade() {
                 Total:
               </div>
             </React.Fragment>
-            
             {/* Question grades rows */}
             {questionKeys.map((questionKey, i) => (
               <React.Fragment key={"q-grade-" + i}>
@@ -373,7 +368,7 @@ export default function ViewMyGrade() {
                 <div
                   style={{
                     position: "absolute",
-                    left: 291,
+                    left: 600 - 67 - 15, // align to the right edge minus margin
                     top: 34 + 48 * (i + 1) + 24,
                     width: 67,
                     height: 24,
@@ -403,7 +398,7 @@ export default function ViewMyGrade() {
                 <div
                   style={{
                     position: "absolute",
-                    left: 15,
+                    left: 17,
                     top: 34 + 48 * (i + 1) + 24,
                     transform: "translateY(-50%)",
                     fontFamily: "var(--font-roboto)",
@@ -418,175 +413,6 @@ export default function ViewMyGrade() {
               </React.Fragment>
             ))}
           </div>
-        </div>
-        {/* Second large rectangle, 85px to the right of the first */}
-        <div
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 36,
-            left: 25 + 373 + 85,
-            width: 373,
-            height: 295,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
-          }}
-        >
-          {/* Title: {course} - {period} - Total */}
-          <div
-            style={{
-              position: "absolute",
-              top: 4,
-              left: 0,
-              width: "100%",
-              textAlign: "center",
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
-              zIndex: 3,
-            }}
-          >
-            {course} - Total
-          </div>
-          {/* Line below title */}
-          <div
-            style={{
-              position: "absolute",
-              top: 34, // 7px (top) + 20px (font size) + 7px
-              left: 15,
-              width: 344.01,
-              height: 1,
-              background: "rgba(255,255,255,0.8)",
-              zIndex: 3,
-            }}
-          />
-        </div>
-        {/* Third large rectangle, 85px to the right of the second */}
-        <div
-          style={{
-            position: "absolute",
-            top: 25 + 53 + 36,
-            left: 25 + 373 + 85 + 373 + 85,
-            width: 373,
-            height: 295,
-            borderRadius: 42,
-            background: "rgba(255,255,255,0.18)",
-            zIndex: 2,
-            overflow: "hidden", // Make it scrollable if needed
-          }}
-        >
-          {/* Title: {course} - {period} - Q1 with chevron */}
-          <div
-            style={{
-              position: "absolute",
-              top: 4,
-              left: 0,
-              width: "100%",
-              height: 28, // covers the title bar
-              textAlign: "center",
-              fontFamily: "var(--font-roboto)",
-              fontWeight: 600,
-              fontSize: 20,
-              color: "#fff",
-              zIndex: 20,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              pointerEvents: "auto",
-              transition: "background 0.2s",
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = '';
-            }}
-          >
-            <span 
-              onClick={() => setDropdownOpen((open) => !open)}
-              style={{ cursor: "pointer" }}
-            >
-              {course} - {selectedQ}
-            </span>
-            <span
-              className="chevron-dropdown"
-              style={{
-                marginLeft: 1,
-                display: "flex",
-                alignItems: "center",
-                userSelect: "none",
-                cursor: "pointer",
-                zIndex: 21,
-                pointerEvents: "auto",
-              }}
-              onClick={e => {
-                e.stopPropagation();
-                setDropdownOpen((open) => !open);
-              }}
-            >
-              {/* Right chevron SVG */}
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 5L11 9L7 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-            {/* Dropdown */}
-            {dropdownOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: 35,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  background: "rgba(0,0,0,0.85)",
-                  borderRadius: 8,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                  zIndex: 30,
-                  minWidth: 90,
-                  padding: "6px 0",
-                  maxHeight: 200,
-                  overflowY: "auto",
-                }}
-              >
-                {questionLabels.map((q) => (
-                  <div
-                    key={q}
-                    onClick={() => {
-                      setSelectedQ(q);
-                      setDropdownOpen(false);
-                    }}
-                    style={{
-                      padding: "6px 18px",
-                      color: "#fff",
-                      fontFamily: "var(--font-roboto)",
-                      fontWeight: 500,
-                      fontSize: 17,
-                      cursor: "pointer",
-                      background: selectedQ === q ? "rgba(255,255,255,0.12)" : "none",
-                      borderRadius: 6,
-                      transition: "background 0.2s",
-                    }}
-                    onMouseDown={e => e.preventDefault()}
-                  >
-                    {q}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {/* Line below title */}
-          <div
-            style={{
-              position: "absolute",
-              top: 34, // 7px (top) + 20px (font size) + 7px
-              left: 15,
-              width: 344.01,
-              height: 1,
-              background: "rgba(255,255,255,0.8)",
-              zIndex: 3,
-            }}
-          />
         </div>
       </div>
     </div>
