@@ -2,6 +2,9 @@ use coursesdb;
 
 INSERT INTO courses (courseID, instructorID, name, institutionID) VALUES
 (3205, 1, 'Software Engineering', 1),
+(3204, 1, 'HCI', 1),
+(3201, 1, 'Maths', 1),
+(3200, 1, 'Algorithms', 1),
 (102, 2, 'Algorithms', 1),
 (201, 3, 'Computer Vision', 2);
 
