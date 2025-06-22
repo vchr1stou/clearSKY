@@ -310,7 +310,7 @@ app.post('/api/grades', verifyToken, async (req, res) => {
     // Send grade data to RabbitMQ for courses service sync
     try {
       const gradeDataForSync = {
-        student_id: parseInt(studentID),
+        student_id: studentID,
         course_id: parseInt(courseID),
         course_ref_id: parseInt(courseID), // Use same as course_id for now
         question_grades: question_grades || {},
@@ -372,7 +372,7 @@ app.put('/api/grades/:gradeId', verifyToken, async (req, res) => {
     // Send updated grade data to RabbitMQ for courses service sync
     try {
       const gradeDataForSync = {
-        student_id: parseInt(grade.studentID),
+        student_id: grade.studentID,
         course_id: parseInt(grade.courseID),
         course_ref_id: parseInt(grade.courseID), // Use same as course_id for now
         question_grades: question_grades || {},
@@ -656,7 +656,7 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
         // Send grade data to RabbitMQ for courses service sync
         try {
           const gradeDataForSync = {
-            student_id: parseInt(studentId),
+            student_id: studentId,
             course_id: parseInt(courseId),
             course_ref_id: parseInt(courseId), // Use same as course_id for now
             question_grades: questionGrades,

@@ -276,7 +276,7 @@ function parseExcelFile(filePath) {
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   
   // Parse starting from row 2 (skip header)
-  const data = xlsx.utils.sheet_to_json(sheet, { range: 2 });
+  const data = xlsx.utils.sheet_to_json(sheet, { range: 2, raw: false, defval: "" });
   
   if (data.length === 0) {
     throw new Error('No data found in Excel file');
