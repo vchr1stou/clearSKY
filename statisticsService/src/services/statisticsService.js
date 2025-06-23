@@ -38,6 +38,8 @@ async function getStats(courseId, institutionId, examPeriod) {
 * - student: can see stats for all exams in the year he took the course*/
 async function getStatsList(role, institutionId, studentId, userId) {
     try {
+        console.log('🔍 getStatsList - Parameters:', { role, institutionId, studentId, userId });
+        
         if (role === 'INSTITUTION_REPRESENTATIVE') {
             return await statistics.findAll({
                 where: {institution_id: institutionId},
@@ -45,21 +47,27 @@ async function getStatsList(role, institutionId, studentId, userId) {
             });
         } else if (role === 'INSTRUCTOR') {
             const query = `
-                SELECT s.course_id, s.course_name, s.exam_period
+                SELECT s.course_id, c.name as course_name, s.exam_period
                 FROM statistics s
                          JOIN courses c ON s.course_id = c.course_id AND s.institution_id = c.institution_id
                 WHERE c.instructor_id = :userId`;
 
-            return await sequelize.query(query, {
+            console.log('🔍 getStatsList - Instructor query:', query);
+            console.log('🔍 getStatsList - Instructor userId:', userId);
+            
+            const result = await sequelize.query(query, {
                 replacements: {userId},
                 type: sequelize.QueryTypes.SELECT
             });
+            
+            console.log('📊 getStatsList - Instructor result:', result);
+            return result;
         } else if (role === 'STUDENT') {
             const query = `
                 SELECT s.course_id, s.course_name, s.exam_period
                 FROM statistics s
-                         JOIN grades g ON s.course_id = g.course_id AND s.institution_id = g.institution_id
-                WHERE g.student_id = :studentId`;
+                         JOIN grades g ON s.course_id = g.courseID AND s.institution_id = g.institutionID
+                WHERE g.studentID = :studentId`;
 
             return await sequelize.query(query, {
                 replacements: {studentId},
@@ -78,13 +86,13 @@ async function getStatsList(role, institutionId, studentId, userId) {
 async function findCoursesWithNoStats(institutionId) {
     try {
         const query = `
-            SELECT DISTINCT g.course_id, g.institution_id, g.exam_period
+            SELECT DISTINCT g.courseID, g.institutionID, g.exam_period
             FROM grades g
                      LEFT JOIN statistics s
-                               ON g.course_id = s.course_id
-                                   AND g.institution_id = s.institution_id
+                               ON g.courseID = s.course_id
+                                   AND g.institutionID = s.institution_id
                                    AND g.exam_period = s.exam_period
-            WHERE g.institution_id = :institutionId
+            WHERE g.institutionID = :institutionId
               AND s.statistics_id IS NULL
         `;
         return await sequelize.query(query, {
@@ -106,8 +114,9 @@ async function createStatistics(institutionId) {
         if (courses.length !== 0) {
             console.log(`Found ${courses.length} courses with grades but no statistics for institution ${institutionId}`);
             for (const course of courses) {
-                const courseId = course.course_id;
+                const courseId = course.courseID;
                 const examPeriod = course.exam_period;
+                console.log('Processing course:', course);
                 // Find all grades for the course
                 const gradesRecords = await grades.findAll({
                     where: {
@@ -178,4 +187,52 @@ async function createStatistics(institutionId) {
     }
 }
 
-module.exports = {getStats, getStatsList, createStatistics};
+// Create or update a grade record in the statistics DB
+async function createGrade(gradeData) {
+    try {
+        // 1. Insert course if not exists (ignore duplicate)
+        const insertCourseSQL = `
+            INSERT INTO courses (course_id, instructor_id, name, institution_id)
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE instructor_id = VALUES(instructor_id), name = VALUES(name)
+        `;
+        await sequelize.query(insertCourseSQL, {
+            replacements: [
+                gradeData.course_id,
+                gradeData.instructor_id,
+                gradeData.course_name || `Course ${gradeData.course_id}`,
+                gradeData.institution_id
+            ]
+        });
+
+        // 2. Insert or update grade
+        const insertGradeSQL = `
+            INSERT INTO grades (studentID, courseID, exam_period, question_grades, grading_status, total_grade, institutionID, instructorID)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+                question_grades = VALUES(question_grades),
+                grading_status = VALUES(grading_status),
+                total_grade = VALUES(total_grade),
+                instructorID = VALUES(instructorID),
+                updated_at = CURRENT_TIMESTAMP
+        `;
+        await sequelize.query(insertGradeSQL, {
+            replacements: [
+                gradeData.student_id,
+                gradeData.course_id,
+                gradeData.exam_period,
+                JSON.stringify(gradeData.question_grades || {}),
+                gradeData.grading_status || 'open',
+                gradeData.total_grade,
+                gradeData.institution_id,
+                gradeData.instructor_id
+            ]
+        });
+        return true;
+    } catch (error) {
+        console.error('Error creating/updating grade in statistics DB (raw SQL):', error);
+        throw error;
+    }
+}
+
+module.exports = {getStats, getStatsList, createStatistics, createGrade};

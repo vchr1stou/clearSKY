@@ -29,10 +29,14 @@ export default function ReviewRequests() {
       }
       let instructorID: number | undefined = undefined;
       try {
-        const decoded = jwtDecode<{ sub?: string | number }>(token);
+        const decoded = jwtDecode<{ sub?: string | number; instructorID?: number; instructor_id?: number }>(token);
         // Debug: log the decoded token
         console.log('Decoded JWT:', decoded);
-        instructorID = decoded.sub ? Number(decoded.sub) : undefined;
+        // Prefer instructorID or instructor_id from the token, fallback to sub
+        instructorID = decoded.instructorID || decoded.instructor_id;
+        if (instructorID === undefined) {
+          instructorID = decoded.sub ? Number(decoded.sub) : undefined;
+        }
         console.log('Instructor ID:', instructorID, 'Type:', typeof instructorID);
       } catch {
         setError("Invalid token");
@@ -40,12 +44,12 @@ export default function ReviewRequests() {
         return;
       }
       if (!instructorID || isNaN(instructorID)) {
-        setError(`No valid instructor ID found in token. Decoded sub: ${typeof instructorID}`);
+        setError(`No valid instructor ID found in token.`);
         setLoading(false);
         return;
       }
       try {
-        const res = await fetch(`http://localhost:3003/api/requests/instructor/${instructorID}`, {
+        const res = await fetch(`/api/requests/instructor/${instructorID}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -340,180 +344,153 @@ export default function ReviewRequests() {
                 top: 25 + 25 + 16, // below the header line
                 left: 0,
                 width: 900,
-                height: 57 * minRows + 1, // show at least 5 rows and the line under the fifth course
+                height: 405 - (25 + 25 + 16),
                 overflowY: "auto",
               }}
             >
-              {/* Horizontal lines as row separators, one more than the number of rows */}
-              {Array.from({ length: numRows + 1 }).map((_, i) => (
-                <div
-                  key={"row-line-" + i}
-                  style={{
-                    position: "absolute",
-                    top: 57 * i,
-                    left: 30,
-                    right: 30,
-                    width: 'auto',
-                    height: 1,
-                    background: "rgba(255,255,255,0.8)",
-                    zIndex: 3,
-                    pointerEvents: "none",
-                  }}
-                />
-              ))}
-              {/* Render rows: real data if present, otherwise empty slots */}
-              {Array.from({ length: numRows }).map((_, i) => {
-                const row = reviewRequests[i];
-                return row ? (
-                  <React.Fragment key={"review-row-" + i}>
-                    {/* Course Name */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 30,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      {row.course}
-                    </div>
-                    {/* Exam Period */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 275,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      {row.period}
-                    </div>
-                    {/* Student Name */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 505,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                      }}
-                    >
-                      {row.student}
-                    </div>
-                    {/* Action Rectangle */}
-                    <div
-                      onClick={() => router.push(`/ReplyToReviewRequest?course=${encodeURIComponent(row.course)}&period=${encodeURIComponent(row.period)}&student=${encodeURIComponent(row.student)}&requestID=${row.requestID}&request_message=${encodeURIComponent(row.request_message)}`)}
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5 - 16.5,
-                        right: 30,
-                        width: 90,
-                        height: 33,
-                        borderRadius: 100,
-                        background: "rgba(255,255,255,0.18)",
-                        zIndex: 4,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-start",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <img
-                        src="/reply.svg"
-                        alt="Reply"
-                        width={16}
-                        height={16}
+              {reviewRequests.length === 0 ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  color: '#fff',
+                  fontSize: 22,
+                  fontFamily: 'var(--font-roboto)',
+                  fontWeight: 600,
+                  opacity: 0.7,
+                }}>
+                  No review requests found.
+                </div>
+              ) : (
+                <>
+                  {/* Render rows with data */}
+                  {reviewRequests.map((row, i) => (
+                    <React.Fragment key={"review-row-" + i}>
+                      {/* Row separator line */}
+                      <div
                         style={{
                           position: "absolute",
-                          left: 15,
-                          top: 9,
-                          width: 15,
-                          height: 15,
-                          display: "block"
+                          top: 57 * i,
+                          left: 30,
+                          right: 30,
+                          height: 1,
+                          background: "rgba(255,255,255,0.8)",
+                          zIndex: 3,
                         }}
                       />
-                      <span
+                      {/* Course Name */}
+                      <div
                         style={{
                           position: "absolute",
-                          left: 35,
-                          top: 9,
+                          top: 57 * i + 28.5,
+                          left: 30,
                           fontFamily: "var(--font-roboto)",
                           fontWeight: 600,
-                          fontSize: 15,
+                          fontSize: 20,
                           color: "#fff",
-                          lineHeight: "15px",
-                          whiteSpace: "nowrap",
+                          zIndex: 4,
+                          transform: "translateY(-50%)",
                         }}
                       >
-                        Reply
-                      </span>
-                    </div>
-                  </React.Fragment>
-                ) : (
-                  // Empty row slot
-                  <React.Fragment key={"review-row-empty-" + i}>
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 30,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                        opacity: 0.3,
-                      }}
-                    >
-                      {/* Empty cell */}
-                    </div>
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 275,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                        opacity: 0.3,
-                      }}
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 57 * i + 28.5,
-                        left: 505,
-                        fontFamily: "var(--font-roboto)",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        color: "#fff",
-                        zIndex: 4,
-                        transform: "translateY(-50%)",
-                        opacity: 0.3,
-                      }}
-                    />
-                    {/* No action button for empty row */}
-                  </React.Fragment>
-                );
-              })}
+                        {row.course}
+                      </div>
+                      {/* Exam Period */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 57 * i + 28.5,
+                          left: 275,
+                          fontFamily: "var(--font-roboto)",
+                          fontWeight: 600,
+                          fontSize: 20,
+                          color: "#fff",
+                          zIndex: 4,
+                          transform: "translateY(-50%)",
+                        }}
+                      >
+                        {row.period}
+                      </div>
+                      {/* Student Name */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 57 * i + 28.5,
+                          left: 505,
+                          fontFamily: "var(--font-roboto)",
+                          fontWeight: 600,
+                          fontSize: 20,
+                          color: "#fff",
+                          zIndex: 4,
+                          transform: "translateY(-50%)",
+                        }}
+                      >
+                        {row.student}
+                      </div>
+                      {/* Action Rectangle */}
+                      <div
+                        onClick={() => router.push(`/ReplyToReviewRequest?course=${encodeURIComponent(row.course)}&period=${encodeURIComponent(row.period)}&student=${encodeURIComponent(row.student)}&requestID=${row.requestID}&request_message=${encodeURIComponent(row.request_message)}`)}
+                        style={{
+                          position: "absolute",
+                          top: 57 * i + 28.5 - 16.5,
+                          right: 30,
+                          width: 90,
+                          height: 33,
+                          borderRadius: 100,
+                          background: "rgba(255,255,255,0.18)",
+                          zIndex: 4,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "flex-start",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <img
+                          src="/reply.svg"
+                          alt="Reply"
+                          width={16}
+                          height={16}
+                          style={{
+                            position: "absolute",
+                            left: 15,
+                            top: 9,
+                            width: 15,
+                            height: 15,
+                            display: "block"
+                          }}
+                        />
+                        <span
+                          style={{
+                            position: "absolute",
+                            left: 35,
+                            top: 9,
+                            fontFamily: "var(--font-roboto)",
+                            fontWeight: 600,
+                            fontSize: 15,
+                            color: "#fff",
+                            lineHeight: "15px",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Reply
+                        </span>
+                      </div>
+                    </React.Fragment>
+                  ))}
+                  {/* Final line at the bottom */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 57 * reviewRequests.length,
+                      left: 30,
+                      right: 30,
+                      height: 1,
+                      background: "rgba(255,255,255,0.8)",
+                      zIndex: 3,
+                    }}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

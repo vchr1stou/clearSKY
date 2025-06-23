@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
-export default function ChangePassword() {
+function ChangePasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -41,7 +41,7 @@ export default function ChangePassword() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3001/api/userManagement/changePassword", {
+      const res = await fetch("/api/userManagement/changePassword", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -410,4 +410,16 @@ export default function ChangePassword() {
       </div>
     </div>
   );
-} 
+}
+
+export default function ChangePassword() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <ChangePasswordContent />
+    </Suspense>
+  );
+}

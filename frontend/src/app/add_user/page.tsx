@@ -81,7 +81,7 @@ export default function AddUser() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/api/userManagement/createUser", {
+      const res = await fetch("/api/userManagement/createUser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

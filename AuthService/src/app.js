@@ -3,6 +3,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const { initDB } = require('./models/index');
 const messageConsumer = require('./services/messageConsumer');
+const {connectWithRetry} = require("./models");
 
 const app = express();
 
@@ -37,7 +38,7 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
     try {
-        await initDB();
+        await connectWithRetry();
         
         // Start the message consumer
         try {

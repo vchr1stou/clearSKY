@@ -49,7 +49,7 @@ export default function MyCourses() {
     }
     if (decodedFullName) setFullName(decodedFullName);
     if (role === "STUDENT") {
-      fetch("http://localhost:3002/api/courses/myCourses", {
+      fetch("/api/courses/myCourses", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -62,7 +62,7 @@ export default function MyCourses() {
         .catch(() => {});
       // Fetch review requests for this student
       if (studentID) {
-        fetch(`http://localhost:3003/api/requests/student/${studentID}`, {
+        fetch(`/api/requests/student/${studentID}`, {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,

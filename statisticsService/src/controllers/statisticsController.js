@@ -51,7 +51,20 @@ async function getMyStats(req, res) {
     const user = req.user;
 
     try {
-        const statsList = await getStatsList(user.role, user.institutionID, user.studentID, user.sub);
+        console.log('🔍 getMyStats - User data:', {
+            role: user.role,
+            institutionID: user.institutionID,
+            studentID: user.studentID,
+            sub: user.sub,
+            instructorID: user.instructorID,
+            instructor_id: user.instructor_id
+        });
+        
+        // For instructors, use instructorID instead of sub
+        const userId = user.role === 'INSTRUCTOR' ? user.instructorID : user.sub;
+        
+        const statsList = await getStatsList(user.role, user.institutionID, user.studentID, userId);
+        console.log('📊 getMyStats - Result:', statsList);
         res.json(statsList);
     } catch (error) {
         console.error('Error fetching statistics list:', error);

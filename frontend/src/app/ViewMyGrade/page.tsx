@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -11,7 +11,7 @@ type CourseData = {
   question_grades: Record<string, number>;
 };
 
-export default function ViewMyGrade() {
+function ViewMyGradeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
@@ -28,7 +28,7 @@ export default function ViewMyGrade() {
           return;
         }
 
-        const response = await fetch("http://localhost:3002/api/courses/myCourses", {
+        const response = await fetch("/api/courses/myCourses", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -428,5 +428,17 @@ export default function ViewMyGrade() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ViewMyGrade() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <ViewMyGradeContent />
+    </Suspense>
   );
 } 

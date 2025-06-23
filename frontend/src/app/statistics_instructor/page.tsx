@@ -8,7 +8,8 @@ import { jwtDecode } from "jwt-decode";
 interface Course {
   course_name: string;
   exam_period: string;
-  course_id?: string;
+  course_id?: string | number;
+  courseID?: string | number;
   id?: string;
   _id?: string;
   [key: string]: unknown;
@@ -19,19 +20,43 @@ interface QuestionGrades {
 }
 
 // Helper to extract grade distribution from courseStatsDebug
-function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
-  if (!courseStatsDebug || typeof courseStatsDebug !== 'object') return null;
-  const obj = courseStatsDebug as Record<string, unknown>;
+function getGradeDistribution(courseStatsDebug: Record<string, any> | null): number[] | null {
+  if (!courseStatsDebug || typeof courseStatsDebug !== 'object') {
+    return null;
+  }
+  
+  const obj = courseStatsDebug as Record<string, any>;
+  
   // Handle gradeDistribution as a JSON string
   if (typeof obj.gradeDistribution === 'string') {
     try {
       const parsed = JSON.parse(obj.gradeDistribution) as Record<string, number>;
       const arr = Array.from({ length: 11 }, (_, i) => parsed[String(i)] ?? 0);
-      if (arr.length === 11 && arr.every((v) => typeof v === 'number')) return arr;
-    } catch {}
+      if (arr.length === 11 && arr.every((v) => typeof v === 'number')) {
+        return arr;
+      }
+    } catch (e) {
+      // Fail silently
+    }
   }
-  if (Array.isArray(obj.distribution) && obj.distribution.every((v: unknown) => typeof v === 'number')) return obj.distribution as number[];
-  if (Array.isArray(obj.grade_distribution) && obj.grade_distribution.every((v: unknown) => typeof v === 'number')) return obj.grade_distribution as number[];
+  
+  // Handle gradeDistribution as an object directly
+  if (obj.gradeDistribution && typeof obj.gradeDistribution === 'object') {
+    const gradeDist = obj.gradeDistribution as Record<string, number>;
+    const arr = Array.from({ length: 11 }, (_, i) => gradeDist[String(i)] ?? 0);
+    if (arr.length === 11 && arr.every((v) => typeof v === 'number')) {
+      return arr;
+    }
+  }
+  
+  if (Array.isArray(obj.distribution) && obj.distribution.every((v: unknown) => typeof v === 'number')) {
+    return obj.distribution as number[];
+  }
+  
+  if (Array.isArray(obj.grade_distribution) && obj.grade_distribution.every((v: unknown) => typeof v === 'number')) {
+    return obj.grade_distribution as number[];
+  }
+  
   if (
     obj.data &&
     Array.isArray(obj.data) &&
@@ -43,6 +68,7 @@ function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
   ) {
     return (obj.data[0] as { distribution: number[] }).distribution;
   }
+  
   if (
     obj.data &&
     Array.isArray(obj.data) &&
@@ -54,6 +80,7 @@ function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
   ) {
     return (obj.data[0] as { grade_distribution: number[] }).grade_distribution;
   }
+  
   return null;
 }
 
@@ -66,12 +93,12 @@ export default function StatisticsInstructor() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectorPosition, setSelectorPosition] = useState<{top: number, left: number, width: number} | null>(null);
   const selectRef = useRef<HTMLDivElement>(null);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [questionGrades, setQuestionGrades] = useState<QuestionGrades | null>(null);
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [selectedSubQuestion, setSelectedSubQuestion] = useState<string | null>(null);
-  const [institutionID, setInstitutionID] = useState<string | number | undefined>(undefined);
-  const [courseStatsDebug, setCourseStatsDebug] = useState<unknown>(null);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [questionGrades, setQuestionGrades] = useState<QuestionGrades | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [selectedSubQuestion, setSelectedSubQuestion] = useState<string | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [institutionID, setInstitutionID] = useState<string | number | undefined>(undefined); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [courseStatsDebug, setCourseStatsDebug] = useState<Record<string, any> | null>(null);
   const [barTooltip, setBarTooltip] = useState<{ index: number; count: number; x: number; y: number } | null>(null);
   const [passFailHovered, setPassFailHovered] = useState<'pass'|'fail'|null>(null);
   const [pieTooltip, setPieTooltip] = useState<{ label: string; percent: number; x: number; y: number } | null>(null);
@@ -90,17 +117,24 @@ export default function StatisticsInstructor() {
     if (!token) {
       return;
     }
+
+    let instructorID: number | undefined;
     try {
-      const decoded = jwtDecode<unknown>(token);
-      let institutionID = undefined;
-      if (typeof decoded === 'object' && decoded !== null) {
-        if ('institutionID' in decoded && typeof (decoded as { institutionID?: unknown }).institutionID !== 'undefined') {
-          institutionID = (decoded as { institutionID?: unknown }).institutionID;
-        } else if ('payload' in decoded && typeof (decoded as { payload?: unknown }).payload === 'object' && (decoded as { payload?: unknown }).payload !== null && 'institutionID' in (decoded as { payload: { institutionID?: unknown } }).payload) {
-          institutionID = ((decoded as { payload: { institutionID?: unknown } }).payload).institutionID;
+      const decoded = jwtDecode<{ instructorID?: number; instructor_id?: number, sub?: string | number }>(token);
+      instructorID = decoded.instructorID || decoded.instructor_id;
+       if (instructorID === undefined) {
+          instructorID = decoded.sub ? Number(decoded.sub) : undefined;
         }
-      }
-    } catch (e) {}
+    } catch (e) {
+      // handle error if needed
+      return;
+    }
+
+    if (!instructorID) {
+      // handle case where instructorID is not found
+      return;
+    }
+
     if (selectRef.current) {
       const rect = selectRef.current.getBoundingClientRect();
       setSelectorPosition({
@@ -109,7 +143,7 @@ export default function StatisticsInstructor() {
         width: rect.width
       });
     }
-    fetch("http://localhost:3004/api/stats/myStats", {
+    fetch(`/api/stats/myStats`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -119,6 +153,12 @@ export default function StatisticsInstructor() {
         const data = await res.json();
         if (Array.isArray(data)) {
           setCourses(data);
+          setSelectorOpen(true);
+        } else if (data.success && Array.isArray(data.data)) {
+          setCourses(data.data);
+          setSelectorOpen(true);
+        } else {
+          setCourses([]);
           setSelectorOpen(true);
         }
       })
@@ -156,12 +196,12 @@ export default function StatisticsInstructor() {
     setSelectedSubQuestion(null);
 
     // New API call
-    const courseID = course.course_id || course.id || course._id;
+    const courseID = course.course_id || course.courseID || course.id || course._id;
     const examPeriod = encodeURIComponent(course.exam_period);
     if (!courseID || !institutionID || !examPeriod) {
       return;
     }
-    const url = `http://localhost:3004/api/stats/courseStats/${courseID}/${institutionID}/${examPeriod}`;
+    const url = `/api/stats/courseStats/${courseID}/${institutionID}/${examPeriod}`;
     const token = localStorage.getItem("authToken");
     try {
       const res = await fetch(url, {
@@ -450,7 +490,7 @@ export default function StatisticsInstructor() {
                       pointerEvents: 'none',
                     }}>
                       <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{max}</span>
-                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max * 2 / 3)}</span>
+                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto', fontWeight: 500 }}>{Math.round(max * 2 / 3)}</span>
                       <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max / 3)}</span>
                     </div>
                     {/* Bars */}
@@ -764,4 +804,4 @@ export default function StatisticsInstructor() {
       </div>
     </div>
   );
-} 
+}

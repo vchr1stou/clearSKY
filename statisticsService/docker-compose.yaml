@@ -1,0 +1,25 @@
+services:
+  statisticsservice:
+    build: .
+    container_name: statisticsservice
+    env_file: .env
+    depends_on:
+      statistics-mysql:
+        condition: service_healthy
+  statistics-mysql:
+    image: mysql:8
+    container_name: statistics-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: statisticsdb
+    volumes:
+      - statistics-mysql-data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p", "password" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+    statistics-mysql-data:

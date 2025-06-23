@@ -8,14 +8,17 @@ Grade.init({
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
+        field: 'gradeID',
     },
     course_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'courseID',
     },
     student_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'studentID',
     },
     question_grades: {
         type: DataTypes.JSON,
@@ -32,6 +35,19 @@ Grade.init({
     institution_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        field: 'institutionID',
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        field: 'created_at',
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        field: 'updated_at',
     },
 }, {
     sequelize,

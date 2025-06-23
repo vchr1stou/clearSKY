@@ -1,16 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function UserManagement() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [apiUsers, setApiUsers] = useState<any[] | null>(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [userToDelete, setUserToDelete] = useState<{ email: string; name: string } | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [userToChangePassword, setUserToChangePassword] = useState<{ email: string; studentID: string | null; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -20,7 +21,7 @@ export default function UserManagement() {
         return;
       }
       try {
-        const response = await fetch("http://localhost:3001/api/userManagement/usersByInstitution", {
+        const response = await fetch("/api/userManagement/usersByInstitution", {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -33,19 +34,6 @@ export default function UserManagement() {
     };
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    if (searchParams.get("created") === "1") {
-      setShowSuccess(true);
-      // Remove the query param from the URL after showing the message
-      setTimeout(() => {
-        setShowSuccess(false);
-        const url = new URL(window.location.href);
-        url.searchParams.delete("created");
-        window.history.replaceState({}, document.title, url.pathname);
-      }, 2500);
-    }
-  }, [searchParams]);
 
   const handleDeleteUser = (email: string, name: string) => {
     setUserToDelete({ email, name });
@@ -66,7 +54,7 @@ export default function UserManagement() {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const institutionID = payload.institutionID;
 
-      const response = await fetch("http://localhost:3001/api/userManagement/removeUser", {
+      const response = await fetch("/api/userManagement/removeUser", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -80,7 +68,7 @@ export default function UserManagement() {
 
       if (response.ok) {
         // Refresh the user list
-        const updatedResponse = await fetch("http://localhost:3001/api/userManagement/usersByInstitution", {
+        const updatedResponse = await fetch("/api/userManagement/usersByInstitution", {
           headers: {
             "Authorization": `Bearer ${token}`,
           },
@@ -101,6 +89,66 @@ export default function UserManagement() {
   const cancelDeleteUser = () => {
     setShowDeleteConfirmation(false);
     setUserToDelete(null);
+  };
+
+  const handleChangePassword = (email: string, studentID: string | null, name: string) => {
+    setUserToChangePassword({ email, studentID, name });
+    setShowChangePassword(true);
+  };
+
+  const confirmChangePassword = async () => {
+    if (!userToChangePassword || !newPassword) {
+        alert("Please enter a new password.");
+        return;
+    }
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("No auth token found");
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const institutionID = payload.institutionID;
+
+      const body = {
+        email: userToChangePassword.email,
+        password: newPassword,
+        institutionID: institutionID,
+        studentID: userToChangePassword.studentID,
+      };
+
+      console.log('Sending to API:', body);
+      console.log('studentID type:', typeof userToChangePassword.studentID);
+
+      const response = await fetch("/api/userManagement/changePassword", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        alert("Password changed successfully.");
+        setShowChangePassword(false);
+        setUserToChangePassword(null);
+        setNewPassword("");
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to change password: ${errorData.message}`);
+      }
+    } catch (error) {
+      alert(`Error changing password: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const cancelChangePassword = () => {
+    setShowChangePassword(false);
+    setUserToChangePassword(null);
+    setNewPassword("");
   };
 
   return (
@@ -453,11 +501,14 @@ export default function UserManagement() {
                 onClick={() => {
                   let studentID = null;
                   if (row.role === 'STUDENT') {
-                    // Extract studentID from "Student (studentID)" format
-                    const match = row.studentID ? row.studentID.toString() : '';
-                    studentID = match;
+                    console.log('Original studentID:', row.studentID, 'Type:', typeof row.studentID);
+                    // Handle both number and string cases
+                    if (row.studentID !== null && row.studentID !== undefined) {
+                      studentID = row.studentID;
                   }
-                  router.push(`/change_password?email=${encodeURIComponent(row.email)}&studentID=${encodeURIComponent(studentID || '')}`);
+                  }
+                  console.log('Final studentID being sent:', studentID, 'Type:', typeof studentID);
+                  handleChangePassword(row.email, studentID, row.FullName);
                 }}
               >
                 <img
@@ -661,9 +712,10 @@ export default function UserManagement() {
           </>
         )}
 
-        {/* Success overlay, canvas-centered and responsive */}
-        {showSuccess && (
+        {/* Change Password Dialog (canvas-centered) */}
+        {showChangePassword && userToChangePassword && (
           <>
+            {/* Optional: dimmed overlay inside canvas */}
             <div
               style={{
                 position: "absolute",
@@ -678,29 +730,104 @@ export default function UserManagement() {
             <div
               style={{
                 position: "absolute",
-                top: "50%",
                 left: "50%",
+                top: "50%",
                 transform: "translate(-50%, -50%)",
-                zIndex: 10002,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 120,
-                width: 'min(90vw, 420px)',
+                width: 500,
+                height: 350,
+                borderRadius: 46,
                 background: "rgba(149,149,149,0.25)",
-                borderRadius: 32,
-                padding: '32px 24px 28px 24px',
-                boxShadow: '0 2px 24px rgba(0,0,0,0.22)',
-                border: '0.3px solid rgba(255, 255, 255, 0.77)',
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: "0.3px solid rgba(255, 255, 255, 0.77)",
+                boxSizing: "border-box",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 40,
+                zIndex: 10002,
               }}
             >
-              <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="32" fill="#27ae60"/>
-                <path d="M18 34L28 44L46 26" stroke="white" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <div style={{ color: '#27ae60', fontWeight: 700, fontSize: 'clamp(16px, 2vw, 20px)', marginTop: 18, textAlign: 'center' }}>
-                User was created successfully
+              <div
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 600,
+                  fontSize: 24,
+                  color: "#fff",
+                  textAlign: "center",
+                  marginBottom: 20,
+                }}
+              >
+                Change Password for {userToChangePassword.name}
+              </div>
+              <div
+                style={{
+                  fontFamily: "var(--font-roboto)",
+                  fontWeight: 400,
+                  fontSize: 18,
+                  color: "#fff",
+                  textAlign: "center",
+                  marginBottom: 20,
+                }}
+              >
+                Enter the new password for {userToChangePassword.email}.
+              </div>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
+                style={{
+                  width: '80%',
+                  height: 40,
+                  padding: '0 15px',
+                  borderRadius: 20,
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  background: 'rgba(255,255,255,0.2)',
+                  color: '#fff',
+                  fontSize: 16,
+                  marginBottom: 40,
+                  outline: 'none'
+                }}
+              />
+              <div style={{ display: "flex", gap: 20 }}>
+                <button
+                  onClick={cancelChangePassword}
+                  style={{
+                    width: 120,
+                    height: 40,
+                    borderRadius: 55,
+                    background: "rgba(255,255,255,0.2)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 15,
+                    fontFamily: "var(--font-roboto)",
+                    border: "none",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmChangePassword}
+                  style={{
+                    width: 120,
+                    height: 40,
+                    borderRadius: 55,
+                    background: "#007bff",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 15,
+                    fontFamily: "var(--font-roboto)",
+                    border: "none",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  Confirm
+                </button>
               </div>
             </div>
           </>

@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const coursesRoutes = require('./routes/coursesRoute');
-const { initDB } = require('./models/index');
+const { connectWithRetry } = require('./models/index');
 const rabbitMQConsumer = require('./services/rabbitmqConsumer');
-const setupDatabase = require('../setup-database');
+//const setupDatabase = require('../setup-database');
 
 const app = express();
 
@@ -39,7 +39,7 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
     try {
-        // Setup database schema first
+        /*// Setup database schema first
         try {
             await setupDatabase();
             console.log('✅ Database schema setup completed');
@@ -47,15 +47,15 @@ async function startServer() {
             console.warn('⚠️ Database setup failed:', setupError.message);
             console.warn('⚠️ Continuing with existing schema...');
         }
-        
-        await initDB();
+        */
+        await connectWithRetry();
         
         // Start RabbitMQ consumer
         try {
             await rabbitMQConsumer.startConsuming();
         } catch (rabbitError) {
-            console.warn('⚠️ RabbitMQ consumer failed to start:', rabbitError.message);
-            console.warn('⚠️ Grade sync functionality will not be available');
+            console.warn(' RabbitMQ consumer failed to start:', rabbitError.message);
+            console.warn(' Grade sync functionality will not be available');
         }
         
         const PORT = process.env.PORT || 3000;

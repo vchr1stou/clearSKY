@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createPortal } from "react-dom";
 
-export default function ReplyToReviewRequest() {
+function ReplyToReviewRequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
@@ -76,7 +76,7 @@ export default function ReplyToReviewRequest() {
     }
     const review_status = selectedAction === "Accept" ? "pending" : "finished";
     try {
-      const res = await fetch(`http://localhost:3003/api/requests/${requestID}`, {
+      const res = await fetch(`/api/requests/${requestID}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -619,4 +619,16 @@ export default function ReplyToReviewRequest() {
       </div>
     </div>
   );
-} 
+}
+
+export default function ReplyToReviewRequest() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <ReplyToReviewRequestContent />
+    </Suspense>
+  );
+}

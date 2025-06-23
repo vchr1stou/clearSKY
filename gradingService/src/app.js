@@ -3,7 +3,7 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const cors = require('cors');
-const { testDB, db } = require('./db/dbConfig.js');
+const dbConfig = require('./db/dbConfig.js');
 const { verifyToken } = require('./middleware/auth.js');
 const rabbitMQService = require('./services/rabbitmqService.js');
 const { 
@@ -30,7 +30,18 @@ const upload = multer({ dest: 'uploads/' });
 
 // Health check endpoint (no authentication required)
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', service: 'grading-service' });
+  dbConfig.db.query('SELECT 1')
+    .then(() => {
+      res.json({ status: 'OK', service: 'grading-service', database: 'connected' });
+    })
+    .catch((err) => {
+      res.status(503).json({ 
+        status: 'error', 
+        service: 'grading-service', 
+        database: 'disconnected',
+        error: err.message
+      });
+    });
 });
 
 // Get required Excel column structure (no authentication required)
@@ -187,8 +198,8 @@ app.post('/api/debug-excel-structure', upload.single('file'), async (req, res) =
 // Debug endpoint to check table structure
 app.get('/api/debug/table-structure', verifyToken, async (req, res) => {
   try {
-    const [columns] = await db.query('DESCRIBE grades');
-    const [requestsColumns] = await db.query('DESCRIBE requests');
+    const [columns] = await dbConfig.db.query('DESCRIBE grades');
+    const [requestsColumns] = await dbConfig.db.query('DESCRIBE requests');
     
     res.json({
       success: true,
@@ -214,7 +225,7 @@ app.get('/api/grades/student/:studentId', verifyToken, async (req, res) => {
   const studentId = req.params.studentId;
 
   try {
-    const [grades] = await db.query(`
+    const [grades] = await dbConfig.db.query(`
       SELECT g.*, c.name as course_name 
       FROM grades g
       LEFT JOIN courses c ON g.courseID = c.courseID
@@ -242,7 +253,7 @@ app.get('/api/grades/student/:studentId/course/:courseId', verifyToken, async (r
   const courseId = req.params.courseId;
 
   try {
-    const [grades] = await db.query(`
+    const [grades] = await dbConfig.db.query(`
       SELECT g.*, c.name as course_name 
       FROM grades g
       LEFT JOIN courses c ON g.courseID = c.courseID
@@ -267,7 +278,7 @@ app.get('/api/grades/student/:studentId/course/:courseId', verifyToken, async (r
 // Get all grades (for instructors/admins)
 app.get('/api/grades', verifyToken, async (req, res) => {
   try {
-    const [grades] = await db.query(`
+    const [grades] = await dbConfig.db.query(`
       SELECT 
         g.gradeID,
         g.studentID,
@@ -297,12 +308,44 @@ app.get('/api/grades', verifyToken, async (req, res) => {
   }
 });
 
+// Get all grades for an instructor (new endpoint)
+app.get('/api/grades/instructor/:instructorId', verifyToken, async (req, res) => {
+  const instructorId = req.params.instructorId;
+
+  try {
+    // This query assumes an instructorID column exists in the grades table.
+    // We will need to add it.
+    const [courses] = await dbConfig.db.query(`
+      SELECT DISTINCT 
+        g.courseID, 
+        c.name as course_name, 
+        g.exam_period
+      FROM grades g
+      LEFT JOIN courses c ON g.courseID = c.courseID
+      WHERE g.instructorID = ?
+      ORDER BY c.name, g.exam_period
+    `, [instructorId]);
+
+    res.json({
+      success: true,
+      data: courses
+    });
+  } catch (err) {
+    console.error('Error fetching instructor grades:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch instructor grades',
+      message: err.message
+    });
+  }
+});
+
 // Create a new grade
 app.post('/api/grades', verifyToken, async (req, res) => {
   const { studentID, courseID, exam_period, total_grade, question_grades, grading_status } = req.body;
 
   try {
-    const [result] = await db.query(`
+    const [result] = await dbConfig.db.query(`
       INSERT INTO grades (studentID, courseID, exam_period, total_grade, question_grades, grading_status)
       VALUES (?, ?, ?, ?, ?, ?)
     `, [studentID, courseID, exam_period, total_grade, JSON.stringify(question_grades), grading_status]);
@@ -317,7 +360,8 @@ app.post('/api/grades', verifyToken, async (req, res) => {
         exam_period: exam_period,
         grading_status: grading_status || 'open',
         total_grade: parseFloat(total_grade),
-        institution_id: req.user?.institutionID || req.user?.institution_id || 1
+        institution_id: req.user?.institutionID || req.user?.institution_id || 1,
+        instructor_id: req.user?.sub
       };
       
       await rabbitMQService.sendGradeData(gradeDataForSync);
@@ -350,7 +394,7 @@ app.put('/api/grades/:gradeId', verifyToken, async (req, res) => {
 
   try {
     // First get the existing grade to get student and course info
-    const [existingGrade] = await db.query(`
+    const [existingGrade] = await dbConfig.db.query(`
       SELECT studentID, courseID, exam_period, institutionID FROM grades WHERE gradeID = ?
     `, [gradeId]);
 
@@ -363,7 +407,7 @@ app.put('/api/grades/:gradeId', verifyToken, async (req, res) => {
 
     const grade = existingGrade[0];
 
-    await db.query(`
+    await dbConfig.db.query(`
       UPDATE grades 
       SET total_grade = ?, question_grades = ?, grading_status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE gradeID = ?
@@ -379,7 +423,8 @@ app.put('/api/grades/:gradeId', verifyToken, async (req, res) => {
         exam_period: grade.exam_period,
         grading_status: grading_status || 'open',
         total_grade: parseFloat(total_grade),
-        institution_id: grade.institutionID || req.user?.institutionID || req.user?.institution_id || 1
+        institution_id: grade.institutionID || req.user?.institutionID || req.user?.institution_id || 1,
+        instructor_id: req.user?.sub
       };
       
       await rabbitMQService.sendGradeData(gradeDataForSync);
@@ -409,7 +454,7 @@ app.delete('/api/grades/:gradeId', verifyToken, async (req, res) => {
   const gradeId = req.params.gradeId;
 
   try {
-    await db.query('DELETE FROM grades WHERE gradeID = ?', [gradeId]);
+    await dbConfig.db.query('DELETE FROM grades WHERE gradeID = ?', [gradeId]);
 
     res.json({
       success: true,
@@ -555,6 +600,15 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
       });
     }
 
+    // Get instructorID from the authenticated user
+    const instructorID = req.user?.sub;
+    if (!instructorID) {
+      return res.status(400).json({
+        success: false,
+        error: 'User instructor ID not found in token'
+      });
+    }
+
     // Map grading_status from frontend selector
     const dbGradingStatus = grading_status === 'Final' ? 'closed' : 'open';
     
@@ -616,22 +670,23 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
 
         // Insert or update grade in database
         const sqlQuery = `
-          INSERT INTO grades (studentID, courseID, exam_period, total_grade, question_grades, grading_status, institutionID)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
+          INSERT INTO grades (studentID, courseID, exam_period, total_grade, question_grades, grading_status, institutionID, instructorID)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE 
             total_grade = VALUES(total_grade), 
             question_grades = VALUES(question_grades), 
             grading_status = VALUES(grading_status),
             institutionID = VALUES(institutionID),
+            instructorID = VALUES(instructorID),
             updated_at = CURRENT_TIMESTAMP
         `;
         
         console.log('Executing SQL query:', sqlQuery);
-        console.log('Parameters:', [studentId, courseId, examPeriod, numTotalGrade, JSON.stringify(questionGrades), dbGradingStatus, institutionID]);
+        console.log('Parameters:', [studentId, courseId, examPeriod, numTotalGrade, JSON.stringify(questionGrades), dbGradingStatus, institutionID, instructorID]);
         
         // Debug: Check actual table structure
         try {
-          const [columns] = await db.query('DESCRIBE grades');
+          const [columns] = await dbConfig.db.query('DESCRIBE grades');
           console.log('Actual grades table columns:');
           columns.forEach(col => {
             console.log(`  - ${col.Field} (${col.Type})`);
@@ -642,7 +697,7 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
         
         // Test query to check table structure
         try {
-          const [testResult] = await db.query('SELECT COUNT(*) as count FROM grades LIMIT 1');
+          const [testResult] = await dbConfig.db.query('SELECT COUNT(*) as count FROM grades LIMIT 1');
           console.log('Test query successful, table exists');
         } catch (testError) {
           console.error('Test query failed:', testError.message);
@@ -650,7 +705,7 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
         }
         
         console.log('About to execute main query...');
-        const result = await db.query(sqlQuery, [studentId, courseId, examPeriod, numTotalGrade, JSON.stringify(questionGrades), dbGradingStatus, institutionID]);
+        const result = await dbConfig.db.query(sqlQuery, [studentId, courseId, examPeriod, numTotalGrade, JSON.stringify(questionGrades), dbGradingStatus, institutionID, instructorID]);
         console.log('Main query executed successfully:', result);
 
         // Send grade data to RabbitMQ for courses service sync
@@ -663,7 +718,8 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
             exam_period: examPeriod,
             grading_status: dbGradingStatus,
             total_grade: numTotalGrade,
-            institution_id: institutionID
+            institution_id: institutionID,
+            instructor_id: instructorID
           };
           
           await rabbitMQService.sendGradeData(gradeDataForSync);
@@ -686,6 +742,14 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
 
     // Clean up temp file
     fs.unlinkSync(temp_file);
+
+    // Notify statistics service that batch is complete
+    try {
+      await rabbitMQService.sendGradeSyncComplete({ institution_id: institutionID });
+    } catch (err) {
+      console.error('❌ Failed to send GRADE_SYNC_COMPLETE to RabbitMQ:', err.message);
+      // Don't fail the process if this fails
+    }
 
     res.json({
       success: true,
@@ -715,10 +779,13 @@ app.post('/api/grades/upload/confirm', verifyToken, express.json(), async (req, 
 
 // Get all requests for a student
 app.get('/api/requests/student/:studentId', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
   const studentId = req.params.studentId;
 
   try {
-    const [requests] = await db.query(`
+    const [requests] = await dbConfig.db.query(`
       SELECT * FROM requests 
       WHERE studentID = ?
       ORDER BY created_at DESC
@@ -740,10 +807,13 @@ app.get('/api/requests/student/:studentId', verifyToken, async (req, res) => {
 
 // Get all requests for an instructor
 app.get('/api/requests/instructor/:instructorId', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
   const instructorId = req.params.instructorId;
 
   try {
-    const [requests] = await db.query(`
+    const [requests] = await dbConfig.db.query(`
       SELECT * FROM requests 
       WHERE instructorID = ?
       ORDER BY created_at DESC
@@ -765,6 +835,9 @@ app.get('/api/requests/instructor/:instructorId', verifyToken, async (req, res) 
 
 // Create a new request
 app.post('/api/requests', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
   const { courseID, studentID, instructorID, request_message, course_name, exam_period, FullName } = req.body;
 
   // Validate all required fields
@@ -782,7 +855,7 @@ app.post('/api/requests', verifyToken, async (req, res) => {
   }
 
   try {
-    const [result] = await db.query(`
+    const [result] = await dbConfig.db.query(`
       INSERT INTO requests (courseID, studentID, instructorID, request_message, course_name, exam_period, FullName)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `, [courseID, studentID, instructorID, request_message, course_name, exam_period, FullName]);
@@ -811,7 +884,7 @@ app.put('/api/requests/:requestId', verifyToken, async (req, res) => {
   const { respond_message, review_status } = req.body;
 
   try {
-    const [result] = await db.query(`
+    const [result] = await dbConfig.db.query(`
       UPDATE requests 
       SET respond_message = ?, review_status = ?, updated_at = CURRENT_TIMESTAMP
       WHERE requestID = ?
@@ -838,29 +911,145 @@ app.put('/api/requests/:requestId', verifyToken, async (req, res) => {
   }
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    message: err.message
-  });
+// Respond to a request
+app.put('/api/requests/:requestId/respond', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
+  const requestId = req.params.requestId;
+  const { respond_message, review_status } = req.body;
+
+  // Basic validation
+  if (!respond_message || !review_status) {
+    return res.status(400).json({
+      success: false,
+      error: 'respond_message and review_status are required'
+    });
+  }
+
+  try {
+    const [result] = await dbConfig.db.query(`
+      UPDATE requests 
+      SET respond_message = ?, review_status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE requestID = ?
+    `, [respond_message, review_status, requestId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Request updated successfully'
+    });
+  } catch (err) {
+    console.error('Error updating request:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update request',
+      message: err.message
+    });
+  }
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Endpoint not found'
-  });
+// Update the status of a request
+app.put('/api/requests/:requestId/status', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
+  const requestId = req.params.requestId;
+  const { review_status } = req.body;
+
+  // Basic validation
+  if (!review_status) {
+    return res.status(400).json({
+      success: false,
+      error: 'review_status is required'
+    });
+  }
+
+  try {
+    const [result] = await dbConfig.db.query(`
+      UPDATE requests 
+      SET review_status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE requestID = ?
+    `, [review_status, requestId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Request not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Request status updated successfully'
+    });
+  } catch (err) {
+    console.error('Error updating request status:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update request status',
+      message: err.message
+    });
+  }
 });
 
-app.listen(PORT, async () => {
-  await testDB();
-  console.log(`🚀 Grading Service API running on port ${PORT}`);
-  console.log(`📚 Health check: http://localhost:${PORT}/health`);
+// Delete a request
+app.delete('/api/requests/:requestId', verifyToken, async (req, res) => {
+  if (!dbConfig.db) {
+    return res.status(503).json({ success: false, error: 'Database not connected' });
+  }
+  const requestId = req.params.requestId;
+
+  try {
+    await dbConfig.db.query('DELETE FROM requests WHERE requestID = ?', [requestId]);
+
+    res.json({
+      success: true,
+      message: 'Request deleted successfully'
+    });
+  } catch (err) {
+    console.error('Error deleting request:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete request',
+      message: err.message
+    });
+  }
 });
+
+// ===== RABBITMQ EVENT HANDLERS =====
+async function handleUserCreated(userData) {
+  // ... existing code ...
+}
+
+// ===== SERVER STARTUP =====
+
+async function startServer() {
+  await dbConfig.connectWithRetry(); // Ensure DB is connected before starting server
+  
+  // Set up RabbitMQ listeners after DB connection is established
+  try {
+    await rabbitMQService.connect();
+    await rabbitMQService.consumeUserCreated(handleUserCreated);
+  } catch (error) {
+    console.error('Failed to start RabbitMQ consumer:', error);
+    // Decide if you want to exit or continue without RabbitMQ
+    // For now, we log the error and continue
+  }
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Grading service running on port ${PORT}`);
+    console.log('🔗 Endpoints available at http://localhost:3003');
+  });
+}
+
+startServer();
 
 // Graceful shutdown
 process.on('SIGINT', async () => {

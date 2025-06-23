@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS statisticsdb;
 USE statisticsdb;
 
 
+
 CREATE TABLE IF NOT EXISTS courses (
     course_id INT NOT NULL,
     instructor_id INT,
@@ -12,15 +13,18 @@ CREATE TABLE IF NOT EXISTS courses (
 
 
 CREATE TABLE IF NOT EXISTS grades (
-    grade_id INT AUTO_INCREMENT PRIMARY KEY,
-    course_id INT,
-    student_id INT,
+    gradeID INT AUTO_INCREMENT PRIMARY KEY,
+    courseID INT NOT NULL,
+    studentID INT NOT NULL ,
     question_grades JSON,
     exam_period varchar(50),
     grading_status enum('open', 'closed'),
     total_grade DECIMAL(5,2),
-    institution_id INT NOT NULL,
-    FOREIGN KEY (institution_id, course_id) REFERENCES courses(institution_id, course_id) ON DELETE CASCADE
+    institutionID INT NOT NULL,
+    instructorID INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (institutionID, courseID) REFERENCES courses(institution_id, course_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS statistics (

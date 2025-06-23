@@ -1,10 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function UniMoreInfo() {
+function UniMoreInfoContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const universityName = searchParams.get("university") || "University Information";
@@ -340,5 +340,17 @@ export default function UniMoreInfo() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UniMoreInfo() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <UniMoreInfoContent />
+    </Suspense>
   );
 } 

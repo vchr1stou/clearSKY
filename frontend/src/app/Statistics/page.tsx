@@ -15,19 +15,53 @@ interface Course {
 }
 
 // Helper to extract grade distribution from courseStatsDebug
-function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
-  if (!courseStatsDebug || typeof courseStatsDebug !== 'object') return null;
-  const obj = courseStatsDebug as Record<string, unknown>;
+function getGradeDistribution(courseStatsDebug: Record<string, any> | null): number[] | null {
+  console.log('getGradeDistribution input:', courseStatsDebug);
+  
+  if (!courseStatsDebug || typeof courseStatsDebug !== 'object') {
+    console.log('courseStatsDebug is null or not an object');
+    return null;
+  }
+  
+  const obj = courseStatsDebug as Record<string, any>;
+  console.log('Object keys:', Object.keys(obj));
+  
   // Handle gradeDistribution as a JSON string
   if (typeof obj.gradeDistribution === 'string') {
     try {
       const parsed = JSON.parse(obj.gradeDistribution) as Record<string, number>;
+      console.log('Parsed gradeDistribution string:', parsed);
       const arr = Array.from({ length: 11 }, (_, i) => parsed[String(i)] ?? 0);
-      if (arr.length === 11 && arr.every((v) => typeof v === 'number')) return arr;
-    } catch {}
+      if (arr.length === 11 && arr.every((v) => typeof v === 'number')) {
+        console.log('Returning parsed array:', arr);
+        return arr;
+      }
+    } catch (e) {
+      console.log('Failed to parse gradeDistribution string:', e);
+    }
   }
-  if (Array.isArray(obj.distribution) && obj.distribution.every((v: unknown) => typeof v === 'number')) return obj.distribution as number[];
-  if (Array.isArray(obj.grade_distribution) && obj.grade_distribution.every((v: unknown) => typeof v === 'number')) return obj.grade_distribution as number[];
+  
+  // Handle gradeDistribution as an object directly
+  if (obj.gradeDistribution && typeof obj.gradeDistribution === 'object') {
+    const gradeDist = obj.gradeDistribution as Record<string, number>;
+    console.log('gradeDistribution object:', gradeDist);
+    const arr = Array.from({ length: 11 }, (_, i) => gradeDist[String(i)] ?? 0);
+    if (arr.length === 11 && arr.every((v) => typeof v === 'number')) {
+      console.log('Returning gradeDistribution object array:', arr);
+      return arr;
+    }
+  }
+  
+  if (Array.isArray(obj.distribution) && obj.distribution.every((v: unknown) => typeof v === 'number')) {
+    console.log('Returning distribution array:', obj.distribution);
+    return obj.distribution as number[];
+  }
+  
+  if (Array.isArray(obj.grade_distribution) && obj.grade_distribution.every((v: unknown) => typeof v === 'number')) {
+    console.log('Returning grade_distribution array:', obj.grade_distribution);
+    return obj.grade_distribution as number[];
+  }
+  
   if (
     obj.data &&
     Array.isArray(obj.data) &&
@@ -37,8 +71,10 @@ function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
     Array.isArray((obj.data[0] as Record<string, unknown>).distribution) &&
     ((obj.data[0] as Record<string, unknown>).distribution as unknown[]).every((v) => typeof v === 'number')
   ) {
+    console.log('Returning nested data[0].distribution:', (obj.data[0] as { distribution: number[] }).distribution);
     return (obj.data[0] as { distribution: number[] }).distribution;
   }
+  
   if (
     obj.data &&
     Array.isArray(obj.data) &&
@@ -48,8 +84,11 @@ function getGradeDistribution(courseStatsDebug: unknown): number[] | null {
     Array.isArray((obj.data[0] as Record<string, unknown>).grade_distribution) &&
     ((obj.data[0] as Record<string, unknown>).grade_distribution as unknown[]).every((v) => typeof v === 'number')
   ) {
+    console.log('Returning nested data[0].grade_distribution:', (obj.data[0] as { grade_distribution: number[] }).grade_distribution);
     return (obj.data[0] as { grade_distribution: number[] }).grade_distribution;
   }
+  
+  console.log('No valid grade distribution found');
   return null;
 }
 
@@ -61,7 +100,7 @@ export default function Statistics() {
   const [selectorPosition, setSelectorPosition] = useState<{top: number, left: number, width: number} | null>(null);
   const selectRef = useRef<HTMLDivElement>(null);
   const [institutionID, setInstitutionID] = useState<string | number | undefined>(undefined);
-  const [courseStatsDebug, setCourseStatsDebug] = useState<unknown>(null);
+  const [courseStatsDebug, setCourseStatsDebug] = useState<Record<string, any> | null>(null);
   const [barTooltip, setBarTooltip] = useState<{ index: number; count: number; x: number; y: number } | null>(null);
   const [passFailHovered, setPassFailHovered] = useState<'pass'|'fail'|null>(null);
   // Pie chart tooltip state (moved from inside render)
@@ -96,7 +135,7 @@ export default function Statistics() {
         width: rect.width
       });
     }
-    fetch("http://localhost:3004/api/stats/myStats", {
+    fetch("/api/stats/myStats", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -145,7 +184,7 @@ export default function Statistics() {
       console.log('Missing courseID, institutionID, or examPeriod', { courseID, institutionID, examPeriod });
       return;
     }
-    const url = `http://localhost:3004/api/stats/courseStats/${courseID}/${institutionID}/${examPeriod}`;
+    const url = `/api/stats/courseStats/${courseID}/${institutionID}/${examPeriod}`;
     const token = localStorage.getItem("authToken");
     try {
       const res = await fetch(url, {
@@ -421,15 +460,16 @@ export default function Statistics() {
                       width: 32,
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'flex-start',
-                      gap: `${(260 - 24 - 24) / 3}px`, // space between labels
+                      justifyContent: 'space-between',
                       alignItems: 'flex-end',
                       zIndex: 2,
                       pointerEvents: 'none',
                     }}>
                       <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{max}</span>
-                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max * 2 / 3)}</span>
-                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max / 3)}</span>
+                      {max > 1 && (
+                        <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>{Math.round(max / 2)}</span>
+                      )}
+                      <span style={{ color: '#fff', fontSize: 15, opacity: 0.7, fontFamily: 'var(--font-roboto)', fontWeight: 500 }}>0</span>
                     </div>
                     {/* Bars */}
                     <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', width: '100%', position: 'relative', zIndex: 1 }}>

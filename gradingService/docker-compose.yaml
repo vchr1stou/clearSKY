@@ -1,0 +1,28 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: grading-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: grading_system
+    volumes:
+      - grading-mysql-data:/var/lib/mysql
+      - ./src/db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p", "password" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gradingservice:
+    build: .
+    container_name: gradingservice
+    env_file: .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${PORT}:${PORT}"
+
+volumes:
+  grading-mysql-data:

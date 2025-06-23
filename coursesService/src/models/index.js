@@ -12,9 +12,25 @@ async function initDB() {
         console.error('Unable to connect to the database:', error);
     }
 }
+async function connectWithRetry(retries = 10, delay = 3000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            await sequelize.authenticate();
+            console.log('Database connection established.');
+            return sequelize;
+        } catch (err) {
+            console.error(`DB connection failed (attempt ${i + 1}):`, err.message);
+            if (i < retries - 1) {
+                await new Promise(res => setTimeout(res, delay));
+            } else {
+                throw err;
+            }
+        }
+    }
+}
 
 // Remove associations to prevent automatic foreign key columns
 // Course.hasMany(Grade, { as: 'Grades' });
 // Grade.belongsTo(Course, { as: 'Course' });
 
-module.exports = {Grade, Course, initDB};
+module.exports = {Grade, Course, initDB, connectWithRetry};

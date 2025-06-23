@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ViewReviewStatus() {
+function ViewReviewStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
@@ -219,4 +219,16 @@ export default function ViewReviewStatus() {
       </div>
     </div>
   );
-} 
+}
+
+export default function ViewReviewStatus() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <ViewReviewStatusContent />
+    </Suspense>
+  );
+}

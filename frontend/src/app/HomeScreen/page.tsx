@@ -1,9 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function HomeScreen() {
+function HomeScreenDynamic() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [role, setRole] = useState("Student");
@@ -381,4 +381,16 @@ export default function HomeScreen() {
       </div>
     </div>
   );
-} 
+}
+
+export default function HomeScreen() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <HomeScreenDynamic />
+    </Suspense>
+  );
+}

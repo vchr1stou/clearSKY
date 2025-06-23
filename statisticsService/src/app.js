@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const statRoutes = require('./routes/statisticsRoute');
-const { initDB } = require('./models/index');
+const { connectWithRetry } = require('./models/index');
+const messagingService = require('./services/messagingService');
 
 const app = express();
 
@@ -22,7 +23,8 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
     try {
-        await initDB();
+        await connectWithRetry();
+        await messagingService.startConsuming();
         const PORT = process.env.PORT || 3000;
         app.listen(PORT, () => console.log(`Statistics service running on port ${PORT}`));
     } catch (err) {

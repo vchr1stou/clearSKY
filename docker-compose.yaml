@@ -1,0 +1,169 @@
+version: "3.8"
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:4001"
+    depends_on:
+      - authservice
+      - courseservice
+      - gradingservice
+      - statisticsservice
+      - usermanagementservice
+      - rabbitmq
+
+  authservice:
+    build: ./AuthService
+    container_name: authservice
+    env_file: ./AuthService/.env
+    depends_on:
+      auth-mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  auth-mysql:
+    image: mysql:8
+    container_name: auth-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: authdb
+    ports:
+      - "3307:3306"
+    volumes:
+      - auth-mysql-data:/var/lib/mysql
+      - ./AuthService/db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  courseservice:
+    build: ./coursesService
+    container_name: courseservice
+    env_file: ./coursesService/.env
+    depends_on:
+      courses-mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  courses-mysql:
+    image: mysql:8
+    container_name: courses-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: coursesdb
+    volumes:
+      - courses-mysql-data:/var/lib/mysql
+      - ./coursesService/db:/docker-entrypoint-initdb.d
+    ports:
+      - "3308:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gradingservice:
+    build: ./gradingService
+    container_name: gradingservice
+    env_file: ./gradingService/.env
+    depends_on:
+      grading-mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  grading-mysql:
+    image: mysql:8
+    container_name: grading-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: grading_system
+    volumes:
+      - grading-mysql-data:/var/lib/mysql
+      - ./gradingService/src/db/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3309:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  statisticsservice:
+    build: ./statisticsService
+    container_name: statisticsservice
+    env_file: ./statisticsService/.env
+    depends_on:
+      statistics-mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  statistics-mysql:
+    image: mysql:8
+    container_name: statistics-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: statisticsdb
+    volumes:
+      - statistics-mysql-data:/var/lib/mysql
+      - ./statisticsService/db:/docker-entrypoint-initdb.d
+    ports:
+        - "3310:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  usermanagementservice:
+    build: ./userManagementService
+    container_name: usermanagementservice
+    env_file: ./userManagementService/.env
+    depends_on:
+      user-mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  user-mysql:
+    image: mysql:8
+    container_name: user-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: usermanagementdb
+    volumes:
+      - user-mysql-data:/var/lib/mysql
+      - ./userManagementService/db:/docker-entrypoint-initdb.d
+    ports:
+      - "3311:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  auth-mysql-data:
+  courses-mysql-data:
+  grading-mysql-data:
+  statistics-mysql-data:
+  user-mysql-data:

@@ -1,10 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 
-export default function AskForReview() {
+function AskForReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const course = searchParams.get("course") || "Course";
@@ -46,7 +46,7 @@ export default function AskForReview() {
       console.log("Student ID:", studentID);
       console.log("Request Message:", requestMessage);
 
-      const response = await fetch("http://localhost:3003/api/requests", {
+      const response = await fetch("/api/requests", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -381,4 +381,16 @@ export default function AskForReview() {
       </div>
     </div>
   );
-} 
+}
+
+export default function AskForReview() {
+  return (
+    <Suspense fallback={
+      <div className="relative min-h-screen w-full overflow-hidden bg-white flex items-center justify-center">
+        <div className="text-white text-2xl">Loading...</div>
+      </div>
+    }>
+      <AskForReviewContent />
+    </Suspense>
+  );
+}

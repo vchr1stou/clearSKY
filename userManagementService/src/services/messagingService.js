@@ -10,7 +10,7 @@ class MessagingService {
     async connect() {
         try {
             // Connect to RabbitMQ (default localhost:5672)
-            this.connection = await amqp.connect('amqp://localhost');
+            this.connection = await amqp.connect('amqp://user:password@rabbitmq:5672');
             this.channel = await this.connection.createChannel();
             
             // Ensure the queue exists

@@ -89,7 +89,7 @@ export default function PostGrades() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('http://localhost:3003/api/grades/upload/preview', {
+      const response = await fetch('/api/grades/upload/preview', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -134,7 +134,7 @@ export default function PostGrades() {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch('http://localhost:3003/api/grades/upload/confirm', {
+      const response = await fetch('/api/grades/upload/confirm', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
